@@ -115,10 +115,7 @@ class ConservePeraa():
         
         #human sequence
         human_alied_sequence = find_human_sequence(path)["sequence"]
-        print(human_alied_sequence)
-        print(len(human_alied_sequence))
 
-        
         #calculate entropy
         entropy_score_list = Entropy().alied_entropy(path)
         

@@ -1,12 +1,12 @@
 import math
-from collections import Counter
-from pathlib import Path 
-from Bio import SeqIO
 import numpy as np
+from Bio import SeqIO
+from pathlib import Path 
+from collections import Counter
+
 from function.utilities import fasta_to_seqlist
 from function.utilities import find_human_sequence
 from function.utilities import get_uniprot_id_from_fasta
-from function.error_handle import od_ident_score_diff_length
 
 
 class Entropy():
@@ -114,7 +114,10 @@ class ConservePeraa():
     def get_aa_info(self, path, od_ident):
         
         #human sequence
-        human_alied_sequence = find_human_sequence(path)
+        human_alied_sequence = find_human_sequence(path)["sequence"]
+        print(human_alied_sequence)
+        print(len(human_alied_sequence))
+
         
         #calculate entropy
         entropy_score_list = Entropy().alied_entropy(path)
@@ -156,8 +159,16 @@ class ConservePeraa():
             'W':0,'Y':0,'-':0}
 
         #ERROR entropy_score_list 和 od_ident長度不一樣
+        '''
+        od_ident:是uniprot資料庫的長度
+        score:算entropy的長度
+
+        因為oma資料庫的關係，長度會不一樣
+        '''
         uniprot_id = get_uniprot_id_from_fasta(path)
-        od_ident_score_diff_length(uniprot_id,entropy_score_list,od_ident)
+        if len(entropy_score_list) != len(od_ident):
+            print("{} ENTROPY LENGTH IS NOT EQUAL WITH OD_IODENT".format(uniprot_id))
+            raise Exception("error")
         
         
         for aa,score,od in zip(human_alied_sequence,entropy_score_list,od_ident):

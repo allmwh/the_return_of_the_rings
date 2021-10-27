@@ -1,10 +1,13 @@
-from itertools import groupby
 import re
+import numpy as np
+from Bio import SeqIO
+from itertools import groupby
+
 from function.utilities import find_human_sequence
 from function.utilities import fasta_to_seqlist
 from function.utilities import get_uniprot_id_from_fasta
-import numpy as np
-from Bio import SeqIO
+
+
 
 
 class FastaExtreFilter():
@@ -200,7 +203,7 @@ class SeqFilter():
         '''
         
         # 找人的功能割到utilities.find_human_sequence()
-        alied_sequence = find_human_sequence(path)
+        alied_sequence = find_human_sequence(path)["sequence"]
         
         # 做新的od_ident
         for index,element in enumerate(alied_sequence):

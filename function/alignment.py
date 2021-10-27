@@ -1,6 +1,8 @@
-from Bio.Align.Applications import ClustalOmegaCommandline
-from tqdm.notebook import trange
 from pathlib import Path
+from tqdm.notebook import trange
+from Bio.Align.Applications import ClustalOmegaCommandline
+
+
 
 class Alignment():
     def __init__(self):

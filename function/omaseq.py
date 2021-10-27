@@ -1,11 +1,11 @@
-from tqdm.notebook import trange
-import requests
-import json
 import re
-from pathlib import Path 
-from Bio.Seq import Seq
+import json
+import requests
 from Bio import SeqIO
+from Bio.Seq import Seq
+from pathlib import Path 
 from Bio.SeqRecord import SeqRecord
+from tqdm.notebook import trange
 
 from function.utilities import fasta_to_seqlist
 from function.utilities import get_taxid_dict
@@ -63,7 +63,7 @@ class FetchOmaSeq():
         oma_raw = json.loads(resp.text)
         
         orthologs_list = []
-        t = trange(len(oma_raw['members']), desc=uniprot_id, leave=False,position=2)
+        t = trange(len(oma_raw['members']), desc=uniprot_id, leave=True,position=2)
         
         for i in t:
             orthologs_list.append(self.__get_protein_info_from_entry(oma_raw['members'][i]['entry_nr'])) #拿data

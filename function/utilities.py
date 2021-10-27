@@ -1,7 +1,40 @@
-from pathlib import Path
+import re
 import pandas as pd
 from Bio import SeqIO
-from function.error_handle import no_human_sequence
+from pathlib import Path
+
+def get_protein_name(uniprot_id,human_df):
+    '''
+    輸入uniprot_id拿到protein的名字
+    '''
+    protein_name = human_df[human_df['uniprot_id']==uniprot_id]['protein_name'].values[0]
+    gene_name = human_df[human_df['uniprot_id']==uniprot_id]['gene_name'].values[0]
+    
+    #判斷有括號
+    if "(" in protein_name:
+        protein_name = re.findall( r"[\w\s.,'-]*", string = protein_name )
+        protein_name = protein_name[0]
+    else:
+        protein_name = protein_name
+    
+    protein_name = re.sub("/","_",protein_name)
+    protein_name = re.sub(" ","_",protein_name)
+    
+    return {"protein_name":protein_name,
+            "gene_name":gene_name}
+
+def get_uniprot_rawdata(path):
+    '''
+    path: str, the uniprot tab file path
+    
+    Load protein data downloaded from uniprot (https://www.uniprot.org/uploadlists/), 
+    the columns of uniprot must be 
+    "Entry, Gene names (primary), Protein names, Sequence, Organism ID" 
+    and save as "Tab-separated format (.tab)" 
+    '''
+    df = pd.read_csv(path,sep='\t',names=['uniprot_id','gene_name','protein_name','protein_sequence','taxonomy'])
+    df = df.drop(0).reset_index().drop(axis=1,labels='index')
+    return df
 
 def get_uniprot_id_from_fasta(path):
     '''
@@ -45,7 +78,8 @@ def find_human_sequence(path):
                     "sequence":sequence}
     
     #沒human的err handle
-    no_human_sequence(uniprot_id,path)
+    print("{}, FASTA PATH {} DOES NOT HAVE HUMAN SEQUENCE".format(uniprot_id,str(path)))
+    raise Exception("error")
 
 
 

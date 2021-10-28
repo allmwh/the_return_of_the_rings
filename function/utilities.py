@@ -6,14 +6,11 @@ from pathlib import Path
 
 def get_protein_name(uniprot_id, human_df):
     """
-    輸入uniprot_id拿到protein的名字
+    get protein name by uniprot_id
     """
-    protein_name = human_df[human_df["uniprot_id"] == uniprot_id][
-        "protein_name"
-    ].values[0]
+    protein_name = human_df[human_df["uniprot_id"] == uniprot_id]["protein_name"].values[0]
     gene_name = human_df[human_df["uniprot_id"] == uniprot_id]["gene_name"].values[0]
 
-    # 判斷有括號
     if "(" in protein_name:
         protein_name = re.findall(r"[\w\s.,'-]*", string=protein_name)
         protein_name = protein_name[0]
@@ -35,24 +32,14 @@ def get_uniprot_rawdata(path):
     "Entry, Gene names (primary), Protein names, Sequence, Organism ID"
     and save as "Tab-separated format (.tab)"
     """
-    df = pd.read_csv(
-        path,
-        sep="\t",
-        names=[
-            "uniprot_id",
-            "gene_name",
-            "protein_name",
-            "protein_sequence",
-            "taxonomy",
-        ],
-    )
+    df = pd.read_csv(path, sep="\t", names=["uniprot_id", "gene_name", "protein_name", "protein_sequence", "taxonomy"])
     df = df.drop(0).reset_index().drop(axis=1, labels="index")
     return df
 
 
 def get_uniprot_id_from_fasta(path):
     """
-    從fastapath拿到uniprotid
+    get uniprot_id from fasta file
     """
     path = Path(path)
     uniprot_id = path.parts[-1].split(".")[0]
@@ -60,42 +47,27 @@ def get_uniprot_id_from_fasta(path):
 
 
 def fasta_to_seqlist(path):
-    """
-    輸入fasta讀成list
-
-    path: fasta檔案
-
-    return: list
-    """
     return list(SeqIO.parse(str(path), "fasta"))
 
 
 def find_human_sequence(path):
     """
-    輸入fasta檔案，找到人類那條
-
-    path: 要找的fasta檔案
-
-    return: 人類的序列
+    find human sequence from paralogs fasta file
     """
 
     path = Path(path)
-
-    # 讀檔
     all_sequence_list = fasta_to_seqlist(path)
     uniprot_id = get_uniprot_id_from_fasta(path)
 
-    # 找出human那條
     for i in all_sequence_list:
         tax_id = i.description.split("|")[2]
         if int(tax_id) == 9606:
             sequence = str(i.seq)
-            return {"uniprot_id": uniprot_id, "sequence": sequence}
+            return {"uniprot_id": uniprot_id, 
+                    "sequence": sequence}
 
-    # 沒human的err handle
-    print(
-        "{}, FASTA PATH {} DOES NOT HAVE HUMAN SEQUENCE".format(uniprot_id, str(path))
-    )
+    # ERROR handle for no human sequence
+    print("{}, FASTA PATH {} DOES NOT HAVE HUMAN SEQUENCE".format(uniprot_id, str(path)))
     raise Exception("error")
 
 
@@ -116,16 +88,13 @@ def get_subset(human_df, subset):
     with open(subset_list_path, "r") as tf:
         subset_list = tf.read().split("\n")
 
-    subset_df = human_df[human_df["uniprot_id"].isin(subset_list)].reset_index(
-        drop=True
-    )
+    subset_df = human_df[human_df["uniprot_id"].isin(subset_list)].reset_index(drop=True)
 
     return subset_df
 
 
 def get_taxid_dict():
     """
-    物種id，之後可以創更多
     https://www.ncbi.nlm.nih.gov/Taxonomy/Browser/wwwtax.cgi?mode=info&id=9606
     """
     return {

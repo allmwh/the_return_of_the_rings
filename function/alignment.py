@@ -10,9 +10,6 @@ class Alignment:
     def alignment_single(self, input_fasta, output_fasta):
         """
         single fasta file alignment
-
-        input_fasta: fasta path for input, Ex: /home/wenlin/d/rbp/oma/base/Q13148.fasta
-        output_fasta: fasta path for output, Ex: /home/wenlin/d/rbp/oma/base/new.fasta
         """
         input_fasta = Path(input_fasta)
         output_fasta = Path(output_fasta)
@@ -33,9 +30,6 @@ class Alignment:
     def alignment_path(self, input_path, output_path):
         """
         alignment all file under input_oath, and output to output_path
-
-        input_path: path contains many fasta files, Ex: /home/wenlin/d/rbp/oma/base/
-        output_path: path contains many fasta files for output, Ex: /home/wenlin/d/rbp/oma/new/
         """
         input_path = Path(input_path)
         input_path.mkdir(parents=True, exist_ok=True)

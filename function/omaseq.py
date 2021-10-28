@@ -13,6 +13,9 @@ from function.utilities import find_human_sequence
 
 
 class FetchOmaSeq:
+    """
+    get paralogs by uniprot id from OMA, https://omabrowser.org/oma/home/
+    """
     def __init__(self):
         pass
 
@@ -26,7 +29,7 @@ class FetchOmaSeq:
             print("{} OMA DOES NOT HAVE THIS UNIPROT_ID RECORD".format(uniprot_id))
             raise Exception("error")
 
-        # uniprot_id_consist_check，uid跟oma的不合check
+        # some uniprot id in OMA paralogs is not consist with uniprot 
         uniprot_id_oma_fassta = find_human_sequence(fasta_path)["uniprot_id"]
         if uniprot_id != uniprot_id_oma_fassta:
             fasta_path.unlink()
@@ -44,7 +47,7 @@ class FetchOmaSeq:
         oma_raw = json.loads(resp.text)
 
         species = oma_raw["species"]["species"]
-        # 去掉可悲的括號
+        # species name is too log, remove some strain info
         species = re.sub("\(.*\)", "", species)
 
         oma_id = oma_raw["omaid"]
@@ -68,9 +71,7 @@ class FetchOmaSeq:
         t = trange(len(oma_raw["members"]), desc=uniprot_id, leave=True, position=2)
 
         for i in t:
-            orthologs_list.append(
-                self.__get_protein_info_from_entry(oma_raw["members"][i]["entry_nr"])
-            )  # 拿data
+            orthologs_list.append(self.__get_protein_info_from_entry(oma_raw["members"][i]["entry_nr"]))  
         return orthologs_list
 
     def __get_fasta(self, orthologs_list, path):
@@ -90,22 +91,13 @@ class FetchOmaSeq:
 class TaxSeqFilter:
     def __init__(self, taxonomy):
         """
-        輸入taxid，去過濾掉oma來的序列
-
+        filter paralogs by taxonomy id, and save as fasta file
         """
-        # species filter
         resp = requests.get("https://omabrowser.org/api/taxonomy/{}".format(taxonomy))
         self.taxonomy = taxonomy
         self.taxonomy_list = resp.text
 
     def taxfilter(self, oma_fasta_path, grouped_fasta_path):
-        """
-        輸入fasta_seq和輸出路徑，過濾fasta
-
-        oma_fasta_path: Path,
-        grouped_fasta_path: Path
-        """
-
         # read
         oma_fasta_list = fasta_to_seqlist(oma_fasta_path)
 
@@ -113,7 +105,6 @@ class TaxSeqFilter:
         filtered_list = []
         for i in oma_fasta_list:
             tax_id = i.description.split("|")[2].replace(" ", "")
-
             if tax_id in self.taxonomy_list:
                 filtered_list.append(i)
 
@@ -121,13 +112,6 @@ class TaxSeqFilter:
             SeqIO.write(filtered_list, output_handle, "fasta")
 
     def taxfilter_pipeline(self, oma_path, grouped_tax_path):
-        """
-        直接給oma根目錄，就開始篩物種，放到要的資料夾
-
-        oma_path: Path()
-        grouped_tax_path: 目標資料夾
-        """
-
         tax_id = Path(str(self.taxonomy))
         species = get_taxid_dict()[self.taxonomy]
         grouped_tax_path.mkdir(exist_ok=True, parents=True)
@@ -137,12 +121,5 @@ class TaxSeqFilter:
 
         for i in t:
             uniprot_id_path = fasta_pathlist[i]
-
-            t.set_description(
-                "{} ({}): {}".format(
-                    species, tax_id, uniprot_id_path.parts[-1].split(".")[0]
-                )
-            )
-            self.taxfilter(
-                uniprot_id_path, grouped_tax_path / Path(uniprot_id_path.parts[-1])
-            )
+            t.set_description("{} ({}): {}".format(species, tax_id, uniprot_id_path.parts[-1].split(".")[0]))
+            self.taxfilter(uniprot_id_path, grouped_tax_path / Path(uniprot_id_path.parts[-1]))

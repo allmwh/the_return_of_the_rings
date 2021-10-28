@@ -115,6 +115,7 @@ class ConservePeraa:
     """
     算每個aa的保守程度
     """
+
     def __init__(self):
         pass
 

@@ -12,9 +12,8 @@ class CutPONDR:
 
     def __init__(self, driver_path, show_progress_window=False):
         """
-        driver_path: str, need to download chrome driver, and specify path for it
-                     chrome driver: https://chromedriver.chromium.org/
-        show_progress_window: bool(default False), show chrome process window during sequence identification by PONDR
+        driver_path: chrome driver path, download: https://chromedriver.chromium.org/
+        show_progress_window: show chrome window during sequence identification by PONDR
         """
         options = webdriver.ChromeOptions()
         if not show_progress_window:
@@ -53,6 +52,7 @@ class CutPONDR:
         self.CAN_XT = self.driver.find_element_by_name("CAN")
         self.VL3_BA = self.driver.find_element_by_name("VL3")
         self.VSL2 = self.driver.find_element_by_name("VSL2")
+
         # output
         self.gra = self.driver.find_element_by_name("graphic")
         self.stat = self.driver.find_element_by_name("stats")
@@ -106,7 +106,7 @@ class CutPONDR:
         )
         df = df.drop(0)
 
-        # make seq_mask
+        # make sequence_mask
         thershold = 0.5
         sequence_mask = ""
         for index, row in df.iterrows():
@@ -121,9 +121,9 @@ class CutPONDR:
 
     def get_disorder_sequence(self):
         """
-        get disorder sequence identified by PONDR, position that identified as order are masked by "*"
+        get disorder sequence identified by PONDR, residues that identified as order are masked by "*"
 
-        return: str, disorder sequence and order are masked by "*"
+        return: str, masked sequence
         """
         disorder_sequence = ""
         for x, y in zip(self.__sequence_mask, self.sequence):
@@ -138,7 +138,7 @@ class CutPONDR:
         """
         get order sequence identified by PONDR, position that identified as disorder are masked by "*"
 
-        return: str, order sequence and disorder are masked by "*"
+        return: str, masked sequence
         """
         order_sequence = ""
         for x, y in zip(self.__sequence_mask, self.sequence):
@@ -151,7 +151,7 @@ class CutPONDR:
 
     def get_sequence_mask(self):
         """
-        position of the sequence is order or disorder,
+        residues are order or disorder,
         "*": order
         ".": disorder
 
@@ -167,7 +167,6 @@ class CutPONDR:
 
         return: str
         """
-
         od_ident = self.__sequence_mask.replace("*", "0").replace(".", "1")
 
         return od_ident

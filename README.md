@@ -4,7 +4,7 @@ The return of the rings: the early convergence of aromatic residues in the RNA-b
 ## Dependencies
 * [python 3+](https://www.python.org/)
 * [chrome](https://www.google.com/chrome/) and [chromedriver](https://chromedriver.chromium.org/)
-* [Clustal Omega](http://www.clustal.org/omega/)
+* [Clustal Omega v1.2.4](http://www.clustal.org/omega/)
 
 ## Usage
 ### Clone and build environment
@@ -22,7 +22,7 @@ After that, just type `jupyter-notebook` in folder, and you can run all of the c
 jupyter-notebook
 ``` 
 ### PONDR order/disorder identification
-> data_pondr_disorder_ident.ipynb   
+> [data_pondr_disorder_ident.ipynb](https://github.com/allmwh/the_return_of_the_rings/blob/main/data_pondr_disorder_ident.ipynb)   
 
 Please change `chromedriver_path` to your chrome driver as shown below, and follow instructions in script file 
 ```
@@ -32,7 +32,7 @@ chromedriver_path = '/home/wenlin/d/custom_command/chromedriver' #chrome driver 
 #####CHANGE HERE#####
 ```
 ### Get taxonomy sequence from OMA
-> data_get_taxonomy_seq.ipynb   
+> [data_get_taxonomy_seq.ipynb](https://github.com/allmwh/the_return_of_the_rings/blob/main/data_get_taxonomy_seq.ipynb)   
   
 This script does following steps:
 * Get paralogs from OMA by uniprot id, downloaded sequences are in `./output/fasta/a_oma`
@@ -42,9 +42,9 @@ This script does following steps:
 
 ### Generate data and figures
 
-> fig1_a.ipynb   
-> fig1_b.ipynb   
-> fig2.ipynb   
+> [fig1_a.ipynb](https://github.com/allmwh/the_return_of_the_rings/blob/main/fig1_a.ipynb)   
+> [fig1_b.ipynb](https://github.com/allmwh/the_return_of_the_rings/blob/main/fig1_b.ipynb)   
+> [fig2.ipynb](https://github.com/allmwh/the_return_of_the_rings/blob/main/fig2.ipynb)   
 
 Following scripts instructions to generate analysed data and figures
 ## Citation

@@ -126,6 +126,7 @@ def get_subset(human_df, subset):
 def get_taxid_dict():
     """
     物種id，之後可以創更多
+    https://www.ncbi.nlm.nih.gov/Taxonomy/Browser/wwwtax.cgi?mode=info&id=9606
     """
     return {
         131567: "cellular_organisms",

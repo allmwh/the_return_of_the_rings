@@ -3,8 +3,8 @@ The return of the rings: the early convergence of aromatic residues in the RNA-b
 
 ## Dependencies
 * [python 3+](https://www.python.org/)
-* [chrome](https://www.google.com/chrome/) and [chromedriver](https://chromedriver.chromium.org/): please download chrome and chromedriver to get order/disorder prediction from [PONDR](http://www.pondr.com/)
-* [Clustal Omega](http://www.clustal.org/omega/): for sequence alignment
+* [chrome](https://www.google.com/chrome/) and [chromedriver](https://chromedriver.chromium.org/)
+* [Clustal Omega](http://www.clustal.org/omega/)
 
 ## Usage
 ### Clone and build environment
@@ -41,6 +41,7 @@ This script does following steps:
 * Align sequences by Clustal Omega: `./output/fasta/c_alied/TAXONOMY_ID`
 * Filter special sequences: some paralogs are too "special" to be filtered, `./output/fasta/d_extre_filtered/TAXONOMY_ID`
 
+### 
 
 
 

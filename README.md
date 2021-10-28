@@ -17,7 +17,7 @@ The return of the rings: the early convergence of aromatic residues in the RNA-b
     pip install -r requirements.txt
     ```
 
-After that, just type jupyter-notebook in folder, and you can run all of the code
+After that, just type `jupyter-notebook` in folder, and you can run all of the code
 ```
 jupyter-notebook
 ``` 
@@ -27,22 +27,26 @@ jupyter-notebook
 
 Please change `chromedriver_path` to your chrome driver as shown below, and follow instructions in script file 
 ```
-#CHANGE HERE
+#####CHANGE HERE#####
 algorithm = 'VSL2' #PONDR algorithm for use (‘VLXT’, ‘XL1_XT’, ‘CAN_XT’, ‘VL3-BA’, 'VSL2')
 chromedriver_path = '/home/wenlin/d/custom_command/chromedriver' #chrome driver path
-#CHANGE HERE
+#####CHANGE HERE#####
 ```
 ### Get taxonomy sequence from OMA
   * data_get_taxonomy_seq.ipynb   
   
 This script does following steps:
-* Get paralogs from OMA by uniprot id: downloaded sequences are in `./output/fasta/a_oma`
-* Group paralogs by [taxonomy id](https://www.ncbi.nlm.nih.gov/Taxonomy/Browser/wwwtax.cgi?mode=info&id=9606): `./output/fasta/b_grouped/TAXONOMY_ID`
-* Align sequences by Clustal Omega: `./output/fasta/c_alied/TAXONOMY_ID`
-* Filter special sequences: some paralogs are too "special" to be filtered, `./output/fasta/d_extre_filtered/TAXONOMY_ID`
+* Get paralogs from OMA by uniprot id, downloaded sequences are in `./output/fasta/a_oma`
+* Group paralogs by [taxonomy id](https://www.ncbi.nlm.nih.gov/Taxonomy/Browser/wwwtax.cgi?mode=info&id=9606), outputs: `./output/fasta/b_grouped/TAXONOMY_ID`
+* Align sequences by Clustal Omega, outputs: `./output/fasta/c_alied/TAXONOMY_ID`
+* Filter special sequences, some paralogs are too "special" to be filtered, outputs: `./output/fasta/d_extre_filtered/TAXONOMY_ID`
 
-### 
+### Generate data and figures
+* fig1_a.ipynb
+* fig1_b.ipynb
+* fig2.ipynb
+
+Following scripts instructions to generate analysed data and figures
 
 
-
-
+## Usage

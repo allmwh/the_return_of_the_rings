@@ -4,12 +4,21 @@ from Bio.Align.Applications import ClustalOmegaCommandline
 
 
 class Alignment:
+    """
+    alignment func by Biopython ClustalOmegaCommandline
+    need to install ClustalOmega: http://www.clustal.org/omega/
+    """
     def __init__(self):
         pass
 
     def alignment_single(self, input_fasta, output_fasta):
         """
         single fasta file alignment
+
+        input_fasta: str, fasta file path for alignment
+        output_fasta: str, fasta file path for alied fasta
+
+        return: None
         """
         input_fasta = Path(input_fasta)
         output_fasta = Path(output_fasta)

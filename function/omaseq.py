@@ -4,22 +4,31 @@ import requests
 from Bio import SeqIO
 from Bio.Seq import Seq
 from pathlib import Path
-from Bio.SeqRecord import SeqRecord
 from tqdm.notebook import trange
+from Bio.SeqRecord import SeqRecord
 
-from function.utilities import fasta_to_seqlist
 from function.utilities import get_taxid_dict
+from function.utilities import fasta_to_seqlist
 from function.utilities import find_human_sequence
 
 
 class FetchOmaSeq:
     """
-    get paralogs by uniprot id from OMA, https://omabrowser.org/oma/home/
+    get paralogs by uniprot id from OMA, 
+    https://omabrowser.org/oma/home/
     """
     def __init__(self):
         pass
 
     def get_oma_seq(self, uniprot_id, path):
+        """
+        get paralogs from OMA by uniprot id
+
+        uniprot_id: str, uniprot id
+        path: str, path to save fasta file
+
+        return: None
+        """
         try:
             path = Path(path)
             fasta_path = path / "{}.fasta".format(uniprot_id)
@@ -33,7 +42,7 @@ class FetchOmaSeq:
         uniprot_id_oma_fassta = find_human_sequence(fasta_path)["uniprot_id"]
         if uniprot_id != uniprot_id_oma_fassta:
             fasta_path.unlink()
-            print("{} IS NOT CONSIST WITH OMA's record".format(uniprot_id))
+            print("{} IN UNIPROT IS NOT CONSIST WITH OMA's record".format(uniprot_id))
             raise Exception("error")
 
     def pipeline_get_oma_seq(self, uniprot_ids, path):
@@ -89,15 +98,25 @@ class FetchOmaSeq:
 
 
 class TaxSeqFilter:
+    """
+    filter paralogs by taxonomy id, and save as fasta file
+    """
     def __init__(self, taxonomy):
         """
-        filter paralogs by taxonomy id, and save as fasta file
+        taxonomy: int, taxonomy id from NCBI for filter
+                       NCBI: https://www.ncbi.nlm.nih.gov/Taxonomy/Browser/wwwtax.cgi?mode=info&id=9606
         """
         resp = requests.get("https://omabrowser.org/api/taxonomy/{}".format(taxonomy))
         self.taxonomy = taxonomy
         self.taxonomy_list = resp.text
 
     def taxfilter(self, oma_fasta_path, grouped_fasta_path):
+        """
+        oma_fasta_path: str, fasta file path for all OMA paralogs
+        grouped_fasta_path: str, fasta file path for grouped paralogs
+        
+        return: None
+        """
         # read
         oma_fasta_list = fasta_to_seqlist(oma_fasta_path)
 

@@ -7,7 +7,7 @@ from selenium.webdriver.support import ui as UI
 
 class CutPONDR:
     """
-    CutPONDR automatically sends sequences to pondr.com, and get order/disrder info
+    automatically sends sequences to pondr.com, and get order/disrder info
     """
 
     def __init__(self, driver_path, show_progress_window=False):

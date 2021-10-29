@@ -8,13 +8,23 @@ from function.utilities import get_uniprot_id_from_fasta
 
 
 class FastaExtreFilter:
+    """
+    filter some special paralogs, 
+    i.e. some sequences in paralogs has long gap(>20) in alied fasta file, 
+    while other sequences do not have gap, we think this is "special", and filter it
+    """
     def __inti__(self):
-        """
-        filter some special paralogs 
-        """
         pass
 
     def fasta_extre_filter(self, input_fasta_path, output_fasta_path, gap_filter_num=20, max_filter_seq=3):
+        """
+        input fasta file, filter special sequence, and output to new fasta
+
+        input_fasta_path: str, fasta file path
+        output_fasta_path: str, filtered fasta file path
+        gap_filter_num: int, sequence that gap larger than gap_filter_num is possible special sequence
+        max_filter_seq: int, sequences number that have same gap simultaneously are special sequence
+        """
         seq_array = self.__seq_2_array(input_fasta_path)
         extre_index = self.__get_extre_index_max_cond(seq_array, gap_filter_num, max_filter_seq)
         self.__fasta_remove_extre_by_index(input_fasta_path, output_fasta_path, extre_index)
@@ -85,10 +95,10 @@ class FastaExtreFilter:
 
 
 class SeqFilter:
+    """
+    filter order/disorder sequence not longer than desired length
+    """
     def __init__(self):
-        """
-        filter order/disorder residure not longer than desired length
-        """
         pass
 
     def length_filter_by_od_ident(self, od_ident, disorder_filter_length, order_filter_length):

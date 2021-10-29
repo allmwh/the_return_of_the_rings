@@ -10,8 +10,6 @@ from function.utilities import get_uniprot_id_from_fasta
 class Entropy:
     def __init__(self):
         """
-        Source of the code:  
-        
         Capra JA and Singh M. Predicting functionally important residues from sequence conservation.
         Bioinformatics, 23(15):1875-82, 2007. [Bioinformatics]
         

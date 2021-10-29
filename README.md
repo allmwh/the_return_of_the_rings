@@ -1,5 +1,5 @@
 # The return of the rings
-The return of the rings: the early convergence of aromatic residues in the RNA-binding proteins’ intrinsically disordered regions for liquid-liquid phase separation
+The return of the rings: evolutionary role of aromatic residues in liquid-liquid phase separation
 
 ## Dependencies
 * [python 3+](https://www.python.org/)
@@ -38,7 +38,7 @@ This script does following steps:
 * Get paralogs from OMA by uniprot id, downloaded sequences are in `./output/fasta/a_oma`
 * Group paralogs by [taxonomy id](https://www.ncbi.nlm.nih.gov/Taxonomy/Browser/wwwtax.cgi?mode=info&id=9606), outputs: `./output/fasta/b_grouped/TAXONOMY_ID`
 * Align sequences by Clustal Omega, outputs: `./output/fasta/c_alied/TAXONOMY_ID`
-* Filter special sequences, some paralogs are too "special" to be filtered, outputs: `./output/fasta/d_extre_filtered/TAXONOMY_ID`
+* Filter special sequences, outputs: `./output/fasta/d_extre_filtered/TAXONOMY_ID`
 
 ### Generate data and figures
 

@@ -46,7 +46,7 @@ This script does following steps:
 > [fig1_b.ipynb](https://github.com/allmwh/the_return_of_the_rings/blob/main/fig1_b.ipynb)   
 > [fig2.ipynb](https://github.com/allmwh/the_return_of_the_rings/blob/main/fig2.ipynb)   
 
-Following scripts instructions to generate analysed data and figures
+Following scripts instructions to generate data and figures
 ## Citation
 ```
 @article

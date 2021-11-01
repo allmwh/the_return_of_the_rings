@@ -2,8 +2,8 @@ import re
 import numpy as np
 from Bio import SeqIO
 
-from function.utilities import find_human_sequence
 from function.utilities import fasta_to_seqlist
+from function.utilities import find_human_sequence
 from function.utilities import get_uniprot_id_from_fasta
 
 
@@ -138,7 +138,8 @@ class SeqFilter:
                 end = i.end()
 
                 order_region.append({"start": start, "end": end})
-        return {"order_region": order_region, "disorder_region": disorder_region}
+        return {"order_region": order_region, 
+                "disorder_region": disorder_region}
 
     def od_add_alignment(self, path, od_ident):
         alied_sequence = find_human_sequence(path)["sequence"]

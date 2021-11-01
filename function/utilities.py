@@ -20,7 +20,8 @@ def get_protein_name(uniprot_id, human_df):
     protein_name = re.sub("/", "_", protein_name)
     protein_name = re.sub(" ", "_", protein_name)
 
-    return {"protein_name": protein_name, "gene_name": gene_name}
+    return {"protein_name": protein_name, 
+            "gene_name": gene_name}
 
 
 def get_uniprot_rawdata(path):

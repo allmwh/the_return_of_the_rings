@@ -1,8 +1,8 @@
 import pandas as pd
 from selenium import webdriver
-from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import ui as UI
+from selenium.webdriver.support import expected_conditions as EC
 
 
 class CutPONDR:

@@ -83,8 +83,22 @@ def get_subset(human_df, subset):
         subset_list_path = Path("./rawdata/rbp_uniprotid_list.txt")
     elif subset == "mrbp":
         subset_list_path = Path("./rawdata/mrbp_uniprotid_list.txt")
+    elif subset == "trbp":
+        subset_list_path = Path("./rawdata/trbp_uniprotid_list.txt")
+    elif subset == "snrbp":
+        subset_list_path = Path("./rawdata/snrbp_uniprotid_list.txt")
+    elif subset == "ncrbp":
+        subset_list_path = Path("./rawdata/ncrbp_uniprotid_list.txt")
+    elif subset == "rrbp":
+        subset_list_path = Path("./rawdata/rrbp_uniprotid_list.txt")
+    elif subset == "irrbp":
+        subset_list_path = Path("./rawdata/irrbp_uniprotid_list.txt")
+    elif subset == "snorbp":
+        subset_list_path = Path("./rawdata/snorbp_uniprotid_list.txt")
+    elif subset == "human":
+        return human_df
     else:
-        raise ValueError("subset must be 'rbp' or 'mrbp' ")
+        raise ValueError("subset must be 'rbp', 'mrbp', 'trbp', 'snrbp', 'snorbp', 'ncrbp', 'rrbp' or 'irrbp' ")
 
     with open(subset_list_path, "r") as tf:
         subset_list = tf.read().split("\n")

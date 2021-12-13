@@ -4,6 +4,7 @@ from Bio import SeqIO
 from pathlib import Path
 
 
+
 def get_protein_name(uniprot_id, human_df):
     """
     get protein name by uniprot_id

@@ -6,6 +6,101 @@ from function.utilities import fasta_to_seqlist
 from function.utilities import find_human_sequence
 from function.utilities import get_uniprot_id_from_fasta
 
+from selenium import webdriver
+from selenium.webdriver.common.by import By 
+from selenium.webdriver.support.ui import Select
+from selenium.webdriver.support import expected_conditions as EC
+
+from tqdm.notebook import trange
+
+
+class ConserveByWeb():
+    '''
+    從這網站丟序列抓保守分數，有很多不同的算法
+    https://compbio.cs.princeton.edu/conservation/score.html
+    '''
+    def __init__(self,driver_path):
+        options = webdriver.ChromeOptions()
+        # if not show_progress_window:
+        #     options.add_argument('--headless')
+        #     options.add_argument('--no-sandbox')
+        #     options.add_argument('--disable-dev-shm-usage')
+        self.driver = webdriver.Chrome(driver_path,options=options)
+
+    def close(self):
+        return self.driver.close()
+
+    def choose_method(self,method):
+        method_select = Select(self.driver.find_element_by_xpath('/html/body/div[1]/div[2]/form/select[1]'))
+        method_dict= {'jsd':lambda: method_select.select_by_visible_text('JS Divergence'),
+                      'shannon_entropy':lambda: method_select.select_by_visible_text('Shannon entropy'),
+                      'property_entropy':lambda: method_select.select_by_visible_text('Property entropy'),
+                    #   'vn_entropy':lambda: method_select.select_by_visible_text('VN entropy'),
+                      'relative_entropy':lambda: method_select.select_by_visible_text('Relative entropy'),
+                      'sum_of_pairs':lambda: method_select.select_by_visible_text('Sum of Pairs')}
+        method_dict[method]()
+    
+    def pipeline_list(self,windows_size,method,path,uniprot_ids):
+        '''
+        windows_size = int
+        method = 'jsd','shannon_entropy','property_entropy','relative_entropy','sum_of_pairs'
+        path: '/home/wenlin/d/rbp/oma/chordata/alied_fasta'
+        uniprot_ids: ['Q13148','O43347','Q96DH6']
+        傳入list 有for的功能，輸出dict
+        '''
+        score = {}
+        path = Path(path)
+        path.mkdir(parents=True, exist_ok=True)
+
+        t = trange(len(uniprot_ids), desc='', leave=False)
+        for i in t:
+            path_full = path / '{}.fasta'.format(uniprot_ids[i])
+            t.set_description(uniprot_ids[i])
+            score[uniprot_ids[i]] = self.calculate(windows_size,method,path_full)
+        
+        return score
+        
+        
+    def calculate(self,windows_size,method,alied_fasta):
+        '''
+        windows_size = int
+        method = 'jsd','shannon_entropy','property_entropy','relative_entropy','sum_of_pairs'
+        alied_fasta = alied過的fasta檔名
+        傳入單一個檔案，輸出分數list
+        '''
+        base_url = 'https://compbio.cs.princeton.edu/conservation/score.html'
+        self.driver.get(base_url)
+
+        #windows size
+        windows_size_buttom = self.driver.find_element_by_xpath('/html/body/div/div[2]/form/input[1]')
+        windows_size_buttom.clear()
+        windows_size_buttom.send_keys(windows_size) #要先清除才能送keys
+        
+        #choose method
+        self.choose_method(method)
+        
+        #send data
+        self.driver.find_element_by_xpath('/html/body/div/div[2]/form/p[5]/input').send_keys(str(alied_fasta))
+        self.driver.find_element_by_xpath('/html/body/div/div[2]/form/p[7]/input').click()
+        
+        #wait
+        webdriver.support.ui.WebDriverWait(self.driver, 2).until(EC.presence_of_element_located((By.XPATH, "/html/body/a")))
+        
+        #save result to list
+        result = self.driver.find_element_by_xpath('/html/body/pre')
+
+        score = []
+        for i in result.text.split('\n')[2:]:
+
+            i = i.split(' ')
+
+            index = i[0]
+            value = float(i[1])
+            seq = i[2]
+
+            score.append(value)
+        
+        return score
 
 class Entropy:
     def __init__(self):

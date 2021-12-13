@@ -147,18 +147,37 @@ class FastaExtreFilter:
 class SeqFilter:
     """
     filter order/disorder sequence not longer than desired length
+
+    od_ident 表示：
+        1 disorder
+        0 order
+
+        x disorder被篩掉
+        z order被篩掉
     """
     def __init__(self):
         pass
 
     def length_filter_by_od_ident(self, od_ident, disorder_filter_length, order_filter_length):
+        '''
+        篩掉不夠長的order/disorder 長度
+
+        od_ident: pondr認出來的order/disoder
+        disorder_filter_length: disorder小於多少要篩掉
+        order_filter_length: order小於多少要篩掉
+
+        return od_ident 
+                    x代表disorder被篩掉的
+                    z代表order被篩掉的
+        '''
+
         #filter_length
         disorder_check = re.finditer("1+", od_ident)
         for i in disorder_check:
             if i:
                 start = i.start()
                 end = i.end()
-                if end - start < disorder_filter_length:
+                if end - start <= disorder_filter_length:
                     od_ident = od_ident[:start] + "x" * (end - start) + od_ident[end:]
 
         order_check = re.finditer("0+", od_ident)
@@ -166,9 +185,38 @@ class SeqFilter:
             if i:
                 start = i.start()
                 end = i.end()
-                if end - start < order_filter_length:
-                    od_ident = od_ident[:start] + "x" * (end - start) + od_ident[end:]
+                if end - start <= order_filter_length:
+                    od_ident = od_ident[:start] + "z" * (end - start) + od_ident[end:]
         return od_ident
+
+    def get_seq_from_od_ident(self, od_ident,sequence,od):
+        '''
+        用od_ident做一條新的序列，通常用在過濾長度後
+        
+        od_ident: 指向是order, disorder的東西  0:order, 1:disorder, x:disorder被過濾掉的 z:order被過濾調的
+        sequence: order/disorder 序列 有*跟aa
+        od: ['order', 'disorder'] 這序列是 order 還是 disorder 
+        '''
+        new_seq = ''
+        for index, element in enumerate(od_ident):
+            if od == 'order': # make order seq
+                if element == '0':
+                    new_seq = new_seq + sequence[index]
+                elif element == 'z':
+                    new_seq = new_seq + 'z'
+                elif element == '1' or element == 'x':
+                    new_seq = new_seq + '*'
+
+            
+            elif od == 'disorder':# make disorder seq
+                if element == '1':
+                    new_seq = new_seq + sequence[index]
+                elif element == 'x':
+                    new_seq = new_seq + 'x'
+                elif element == '0' or element == 'z':
+                    new_seq = new_seq + '*'
+                    
+        return new_seq
 
     def get_od_index(self, od_ident):
         #get order_disorder index

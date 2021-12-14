@@ -10,8 +10,58 @@ from selenium import webdriver
 from selenium.webdriver.common.by import By 
 from selenium.webdriver.support.ui import Select
 from selenium.webdriver.support import expected_conditions as EC
+from webdriver_manager.chrome import ChromeDriverManager
 
 from tqdm.notebook import trange
+
+
+
+import subprocess
+import pandas as pd
+from pathlib import Path
+from function.utilities import find_human_sequence
+class Rate4Site():
+    def __init__(self, work_path = '/home/wenlin/tmp'):
+        
+        work_path = Path(work_path)
+        self.work_path = work_path
+        
+        self.res_path = work_path / "tmp.res"
+        
+        
+    
+    def get_conserve_score(self, fasta_path):
+        
+        #run rate4site
+        self.run_rate4site(fasta_path, self.res_path)
+        
+        #parse_res_file
+        conserve_score = self.parse_res_file(self.res_path)
+        
+        return conserve_score
+        
+    def run_rate4site(self, fasta_path,res_path):
+        fasta_path = str(fasta_path)
+        res_path = str(res_path)
+
+        #get ref seq name
+        seqence_name = find_human_sequence(fasta_path)['sequence_name']
+        
+        #change_dir 
+        process = subprocess.Popen(['rate4site', '-s', fasta_path, '-o', res_path, '-a', seqence_name],
+                                    cwd = self.work_path,
+                                    stdout = subprocess.PIPE, 
+                                    stderr = subprocess.PIPE)
+        stdout, _ = process.communicate()
+        print(stdout)
+        
+    def parse_res_file(self, res_path):
+        df = pd.read_csv(res_path,skiprows=[0,1,2,3,4,5,6,7,8,9,10,11,12], 
+                 delim_whitespace=True, 
+                 skipfooter=2, 
+                 header=None,
+                 engine='python')
+        return df[2].to_list()
 
 
 class ConserveByWeb():
@@ -19,75 +69,68 @@ class ConserveByWeb():
     從這網站丟序列抓保守分數，有很多不同的算法
     https://compbio.cs.princeton.edu/conservation/score.html
     '''
-    def __init__(self,driver_path):
+    def __init__(self):
         options = webdriver.ChromeOptions()
-        # if not show_progress_window:
-        #     options.add_argument('--headless')
-        #     options.add_argument('--no-sandbox')
-        #     options.add_argument('--disable-dev-shm-usage')
-        self.driver = webdriver.Chrome(driver_path,options=options)
+        
+        options.add_argument('--headless')
+        options.add_argument('--no-sandbox')
+        options.add_argument("--disable-extensions")
+        # options.add_argument("--disable-gpu")
+        # options.add_argument('--disable-dev-shm-usage')
+        
+        self.driver = webdriver.Chrome(ChromeDriverManager().install(), options=options)
 
     def close(self):
         return self.driver.close()
 
     def choose_method(self,method):
-        method_select = Select(self.driver.find_element_by_xpath('/html/body/div[1]/div[2]/form/select[1]'))
+        method_select = Select(self.driver.find_element(By.XPATH,'/html/body/div[1]/div[2]/form/select[1]'))
         method_dict= {'jsd':lambda: method_select.select_by_visible_text('JS Divergence'),
                       'shannon_entropy':lambda: method_select.select_by_visible_text('Shannon entropy'),
                       'property_entropy':lambda: method_select.select_by_visible_text('Property entropy'),
-                    #   'vn_entropy':lambda: method_select.select_by_visible_text('VN entropy'),
+                      'vn_entropy':lambda: method_select.select_by_visible_text('VN entropy'),
                       'relative_entropy':lambda: method_select.select_by_visible_text('Relative entropy'),
                       'sum_of_pairs':lambda: method_select.select_by_visible_text('Sum of Pairs')}
         method_dict[method]()
-    
-    def pipeline_list(self,windows_size,method,path,uniprot_ids):
-        '''
-        windows_size = int
-        method = 'jsd','shannon_entropy','property_entropy','relative_entropy','sum_of_pairs'
-        path: '/home/wenlin/d/rbp/oma/chordata/alied_fasta'
-        uniprot_ids: ['Q13148','O43347','Q96DH6']
-        傳入list 有for的功能，輸出dict
-        '''
-        score = {}
-        path = Path(path)
-        path.mkdir(parents=True, exist_ok=True)
-
-        t = trange(len(uniprot_ids), desc='', leave=False)
-        for i in t:
-            path_full = path / '{}.fasta'.format(uniprot_ids[i])
-            t.set_description(uniprot_ids[i])
-            score[uniprot_ids[i]] = self.calculate(windows_size,method,path_full)
-        
-        return score
         
         
-    def calculate(self,windows_size,method,alied_fasta):
+    def calculate(self,windows_size,sequence_weighting,method,alied_fasta):
         '''
-        windows_size = int
-        method = 'jsd','shannon_entropy','property_entropy','relative_entropy','sum_of_pairs'
+        windows_size: int
+        sequence_weighting: bool
+        method: ['jsd', 'shannon_entropy', 'property_entropy', 'relative_entropy', 'sum_of_pairs']
         alied_fasta = alied過的fasta檔名
+        
         傳入單一個檔案，輸出分數list
         '''
         base_url = 'https://compbio.cs.princeton.edu/conservation/score.html'
         self.driver.get(base_url)
 
         #windows size
-        windows_size_buttom = self.driver.find_element_by_xpath('/html/body/div/div[2]/form/input[1]')
+        windows_size_buttom = self.driver.find_element(By.XPATH,'/html/body/div/div[2]/form/input[1]')
         windows_size_buttom.clear()
         windows_size_buttom.send_keys(windows_size) #要先清除才能送keys
         
+        #Sequence Weighting
+        sequence_weighting_bottom = self.driver.find_element(By.XPATH,'/html/body/div[1]/div[2]/form/input[2]')
+        sequence_weighting_bottom.click() #clean default click
+        if sequence_weighting == True:
+            sequence_weighting_bottom.click()
+        elif sequence_weighting == False:
+            pass
+            
         #choose method
         self.choose_method(method)
         
         #send data
-        self.driver.find_element_by_xpath('/html/body/div/div[2]/form/p[5]/input').send_keys(str(alied_fasta))
-        self.driver.find_element_by_xpath('/html/body/div/div[2]/form/p[7]/input').click()
+        self.driver.find_element(By.XPATH, '/html/body/div/div[2]/form/p[5]/input').send_keys(str(alied_fasta))
+        self.driver.find_element(By.XPATH, '/html/body/div/div[2]/form/p[7]/input').click()
         
         #wait
         webdriver.support.ui.WebDriverWait(self.driver, 2).until(EC.presence_of_element_located((By.XPATH, "/html/body/a")))
         
         #save result to list
-        result = self.driver.find_element_by_xpath('/html/body/pre')
+        result = self.driver.find_element(By.XPATH,'/html/body/pre')
 
         score = []
         for i in result.text.split('\n')[2:]:

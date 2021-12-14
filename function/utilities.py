@@ -65,7 +65,8 @@ def find_human_sequence(path):
         tax_id = i.description.split("|")[2]
         if int(tax_id) == 9606:
             sequence = str(i.seq)
-            return {"uniprot_id": uniprot_id, 
+            return {"uniprot_id": uniprot_id,
+                    "sequence_name": i.description,
                     "sequence": sequence}
 
     # ERROR handle for no human sequence

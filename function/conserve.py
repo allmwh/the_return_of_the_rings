@@ -4,6 +4,7 @@ from pathlib import Path
 
 from function.utilities import fasta_to_seqlist
 from function.utilities import find_human_sequence
+from function.utilities import get_only_human_score
 from function.utilities import get_uniprot_id_from_fasta
 
 from selenium import webdriver
@@ -20,6 +21,7 @@ import subprocess
 import pandas as pd
 from pathlib import Path
 from function.utilities import find_human_sequence
+
 class Rate4Site():
     def __init__(self, work_path = '/home/wenlin/tmp'):
         
@@ -28,34 +30,41 @@ class Rate4Site():
         
         self.res_path = work_path / "tmp.res"
         
-        
     
     def get_conserve_score(self, fasta_path):
         
         #run rate4site
-        self.run_rate4site(fasta_path, self.res_path)
+        self.__run_rate4site(fasta_path, self.res_path)
         
         #parse_res_file
-        conserve_score = self.parse_res_file(self.res_path)
+        conserve_score = self.__parse_res_file(self.res_path)
         
         return conserve_score
         
-    def run_rate4site(self, fasta_path,res_path):
+    def __run_rate4site(self, fasta_path,res_path):
+        
+
         fasta_path = str(fasta_path)
         res_path = str(res_path)
 
         #get ref seq name
         seqence_name = find_human_sequence(fasta_path)['sequence_name']
         
-        #change_dir 
-        process = subprocess.Popen(['rate4site', '-s', fasta_path, '-o', res_path, '-a', seqence_name],
-                                    cwd = self.work_path,
-                                    stdout = subprocess.PIPE, 
-                                    stderr = subprocess.PIPE)
-        stdout, _ = process.communicate()
-        print(stdout)
         
-    def parse_res_file(self, res_path):
+        #-s input fasta
+        #-o output score 
+        #-a reference sequence name, human sequence's name in fasta
+        try:
+            process = subprocess.Popen(['rate4site', '-s', fasta_path, '-o', res_path, '-a', seqence_name],
+                                        cwd = self.work_path,
+                                        stdout = subprocess.PIPE, 
+                                        stderr = subprocess.PIPE)
+            stdout, stderr = process.communicate()
+        except:
+            raise FileNotFoundError("Rate4Site may not be installed, please install Rate4Site")
+
+        
+    def __parse_res_file(self, res_path):
         df = pd.read_csv(res_path,skiprows=[0,1,2,3,4,5,6,7,8,9,10,11,12], 
                  delim_whitespace=True, 
                  skipfooter=2, 
@@ -145,7 +154,7 @@ class ConserveByWeb():
         
         return score
 
-class Entropy:
+class Entropy():
     def __init__(self):
         """
         Capra JA and Singh M. Predicting functionally important residues from sequence conservation.
@@ -155,7 +164,7 @@ class Entropy:
         """
         pass
 
-    def alied_entropy(self, fasta_path):
+    def get_conserve_score(self, fasta_path):
         fasta_path = Path(fasta_path)
         fasta_list = fasta_to_seqlist(fasta_path)
 
@@ -227,7 +236,7 @@ class Entropy:
         return 1 - (gap_sum / sum(seq_weights))
 
 
-class ConservePeraa:
+class ConservePeraa():
     """
     calculate conservation lever per amino acid
     """
@@ -235,12 +244,16 @@ class ConservePeraa:
     def __init__(self):
         pass
 
-    def get_aa_info(self, path, od_ident):
-        # human sequence
-        human_alied_sequence = find_human_sequence(path)["sequence"]
 
-        # calculate entropy
-        entropy_score_list = Entropy().alied_entropy(path)
+
+    def get_aa_info(self, fasta_path, conserve_score, od_ident):
+        '''
+        fasta_path: alied 好的fasta
+        conserve_score: conserve score
+        od_ident: 切掉非human的od_ident
+        '''
+        # human sequence
+        human_alied_sequence = find_human_sequence(fasta_path)["sequence"]
 
         order_content_dict = {
             "A": 0, "C": 0, "D": 0,
@@ -285,12 +298,12 @@ class ConservePeraa:
             }
 
         # ERROR handle due to the lehgth of sequence from OMA and uniprot are different, while uniprot_id is the same
-        uniprot_id = get_uniprot_id_from_fasta(path)
-        if len(entropy_score_list) != len(od_ident):
+        uniprot_id = get_uniprot_id_from_fasta(fasta_path)
+        if len(conserve_score) != len(od_ident):
             print("{} ENTROPY LENGTH IS NOT EQUAL WITH OD_IODENT".format(uniprot_id))
             raise Exception("error")
 
-        for aa, score, od in zip(human_alied_sequence, entropy_score_list, od_ident):
+        for aa, score, od in zip(human_alied_sequence, conserve_score, od_ident):
             if np.isnan(score):  
                 continue
             if od == "0":  # order

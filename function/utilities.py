@@ -1,9 +1,24 @@
 import re
+import numpy as np
 import pandas as pd
 from Bio import SeqIO
 from pathlib import Path
 
+def get_only_human_score(score, fasta_path):
+    """
+    get entropy score only when alignment positions on human sequence is not gap
 
+    score: list, entropy score calculated by conserve score func
+    fasta_path: str, fasta file 
+    
+    return: list, score as same length with human sequence
+    """
+    nogap_score = []
+    nogap = np.array(list(find_human_sequence(fasta_path)["sequence"])) != "-"
+    nogap_index = np.where(nogap)[0].tolist()
+    for index in nogap_index:
+        nogap_score.append(score[index])
+    return nogap_score
 
 def get_protein_name(uniprot_id, human_df):
     """

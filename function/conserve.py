@@ -1,15 +1,13 @@
 import math
-from re import A
 import shutil
 import subprocess
 import numpy as np
 import pandas as pd
-
 from pathlib import Path
 
+from function.utilities import seq_aa_check
 from function.utilities import fasta_to_seqlist
 from function.utilities import find_human_sequence
-from function.utilities import get_only_human_score
 from function.utilities import get_uniprot_id_from_fasta
 
 from selenium import webdriver
@@ -18,10 +16,6 @@ from selenium.webdriver.support.ui import Select
 from selenium.webdriver.support import expected_conditions as EC
 from webdriver_manager.chrome import ChromeDriverManager
 
-from tqdm.notebook import trange
-
-from pathlib import Path
-from function.utilities import find_human_sequence
 
 class Rate4Site():
     
@@ -100,7 +94,7 @@ class ConserveByWeb():
         
         self.driver = webdriver.Chrome(ChromeDriverManager().install(), options=options)
 
-    def get_conserve_score(self,windows_size, sequence_weighting, method, fasta_path):
+    def get_conserve_score(self, fasta_path, method, windows_size=0, sequence_weight=False):
         '''
         windows_size: int
         sequence_weighting: bool
@@ -111,6 +105,7 @@ class ConserveByWeb():
         '''
         base_url = 'https://compbio.cs.princeton.edu/conservation/score.html'
         self.driver.get(base_url)
+        fasta_path = fasta_path.resolve()
 
         #windows size
         windows_size_buttom = self.driver.find_element(By.XPATH,'/html/body/div/div[2]/form/input[1]')
@@ -120,9 +115,9 @@ class ConserveByWeb():
         #Sequence Weighting
         sequence_weighting_bottom = self.driver.find_element(By.XPATH,'/html/body/div[1]/div[2]/form/input[2]')
         sequence_weighting_bottom.click() #clean default click
-        if sequence_weighting == True:
+        if sequence_weight == True:
             sequence_weighting_bottom.click()
-        elif sequence_weighting == False:
+        elif sequence_weight == False:
             pass
             
         #choose method
@@ -223,7 +218,7 @@ class ConserveStandalone():
         fasta_path = Path(fasta_path)
         fasta_list = fasta_to_seqlist(fasta_path)
 
-        all_seq = [list(str(seqrecord.seq)) for seqrecord in fasta_list]
+        all_seq = [list(seq_aa_check(str(seqrecord.seq))) for seqrecord in fasta_list]
         seqs_strip = np.array(all_seq, dtype=object).T
         
         return seqs_strip
@@ -315,9 +310,9 @@ class ConserveStandalone():
         inf_score = 1 - (-1 * h)
 
         if gap_penalty == 1: 
-            return round((inf_score * self.__weighted_gap_penalty(col, seq_weights)),4)
+            return round((inf_score * self.__weighted_gap_penalty(col, seq_weights)),5)
         else: 
-            return round(inf_score,4)
+            return round(inf_score,5)
 
     def __js_divergence(self, col, bg_distr, seq_weights, gap_penalty=1):
         """ Return the Jensen-Shannon Divergence for the column with the background
@@ -357,9 +352,9 @@ class ConserveStandalone():
         d /= 2
 
         if gap_penalty == 1: 
-            return round((d * self.__weighted_gap_penalty(col, seq_weights)),4)
-        else: 
-            return round(d,4) 
+            return round((d * self.__weighted_gap_penalty(col, seq_weights)),5) 
+        else:  
+            return round(d,5) 
         
     def __window_score(self, scores, window_len, lam=.5):
         """ This function takes a list of scores and a length and transforms them 
@@ -384,7 +379,7 @@ class ConserveStandalone():
             if num_terms > 0:
                 w_scores[i] = (1 - lam) * (sum / num_terms) + lam * scores[i]
 
-        return [round(i,4) for i in w_scores]
+        return [round(i,5) for i in w_scores]
 
 
 class ConservePeraa():
@@ -473,11 +468,11 @@ class ConservePeraa():
             if disorder_content_dict[key] == 0:
                 disorder_score_dict[key] = 0
             else:
-                disorder_score_dict[key] = round((disorder_score_dict[key] / disorder_content_dict[key]), 3)
+                disorder_score_dict[key] = round((disorder_score_dict[key] / disorder_content_dict[key]), 5)
             if order_content_dict[key] == 0:
                 order_score_dict[key] = 0
             else:
-                order_score_dict[key] = round((order_score_dict[key] / order_content_dict[key]), 3)
+                order_score_dict[key] = round((order_score_dict[key] / order_content_dict[key]), 5)
 
         # content sum
         order_content_dict["total"] = sum(order_content_dict.values())

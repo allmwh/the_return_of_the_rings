@@ -4,6 +4,26 @@ import pandas as pd
 from Bio import SeqIO
 from pathlib import Path
 
+
+def seq_aa_check(sequence):
+    '''
+    check aa 20 usual
+    https://www.ncbi.nlm.nih.gov/Class/MLACourse/Modules/MolBioReview/iupac_aa_abbreviations.html
+    
+    sequence: str, seqeunce
+    '''
+    amino_acids = ['A', 'R', 'N', 'D', 'C', 'Q', 'E', 'G', 'H', 'I', 'L', 'K', 'M', 'F', 'P', 'S', 'T', 'W', 'Y', 'V', '-']
+    sequence = sequence.replace('B', 'D').replace('Z', 'Q').replace('X', '-')
+    
+    new_seq = ''
+    for index, aa in enumerate(sequence):
+        if aa not in amino_acids:
+            new_seq = new_seq + '-'
+        else:
+            new_seq = new_seq + sequence[index]
+            
+    return new_seq
+
 def get_only_human_score(score, fasta_path):
     """
     get entropy score only when alignment positions on human sequence is not gap

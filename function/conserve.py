@@ -87,7 +87,7 @@ class ConserveByWeb():
 
     def __init__(self):
         '''
-        Please consider use standalone version Conserve() to have better speed instead of web crawler 
+        Please consider use standalone version ConserveStandalone() to have better speed instead of web crawler 
 
         Claculate conserve score by web
         https://compbio.cs.princeton.edu/conservation/score.html
@@ -159,7 +159,7 @@ class ConserveByWeb():
         return self.driver.close()      
 
 
-class Conserve():
+class ConserveStandalone():
     
     def __init__(self):
         '''

@@ -397,7 +397,7 @@ class ConservePeraa():
         od_ident: 切掉非human的od_ident
         '''
         # human sequence
-        human_alied_sequence = find_human_sequence(fasta_path)["sequence"]
+        human_sequence = find_human_sequence(fasta_path)["remove_gap_sequence"]
 
         order_content_dict = {
             "A": 0, "C": 0, "D": 0,
@@ -444,10 +444,10 @@ class ConservePeraa():
         # ERROR handle due to the lehgth of sequence from OMA and uniprot are different, while uniprot_id is the same
         uniprot_id = get_uniprot_id_from_fasta(fasta_path)
         if len(conserve_score) != len(od_ident):
-            print("{} ENTROPY LENGTH IS NOT EQUAL WITH OD_IODENT".format(uniprot_id))
+            print("{} LENGTH IS NOT EQUAL WITH OD_IODENT".format(uniprot_id))
             raise Exception("error")
 
-        for aa, score, od in zip(human_alied_sequence, conserve_score, od_ident):
+        for aa, score, od in zip(human_sequence, conserve_score, od_ident):
             if np.isnan(score):  
                 continue
             if od == "0":  # order

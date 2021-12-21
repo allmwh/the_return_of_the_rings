@@ -102,6 +102,7 @@ def find_human_sequence(path):
             sequence = str(i.seq)
             return {"uniprot_id": uniprot_id,
                     "sequence_name": i.description,
+                    "remove_gap_sequence":sequence.replace("-",""),
                     "sequence": sequence}
 
     # ERROR handle for no human sequence

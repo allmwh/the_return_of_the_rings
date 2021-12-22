@@ -441,11 +441,15 @@ class ConservePeraa():
             "W": 0, "Y": 0, "-": 0,
             }
 
-        # ERROR handle due to the lehgth of sequence from OMA and uniprot are different, while uniprot_id is the same
+        
+        #length check
         uniprot_id = get_uniprot_id_from_fasta(fasta_path)
-        if len(conserve_score) != len(od_ident):
-            print("{} LENGTH IS NOT EQUAL WITH OD_IODENT".format(uniprot_id))
-            raise Exception("error")
+        if not (len(human_sequence) == len(conserve_score) == len(od_ident)):
+            raise Exception('''{} human_sequence, conserve_score, od_ident length check, these three length must be same,
+            possible not same reason: 
+            1.OMA database with same uniprot_id, while sequence is different
+            2.human_sequence does not remove "-", because od_ident and conserve_score is calculated by remove gap
+            '''.format(uniprot_id))
 
         for aa, score, od in zip(human_sequence, conserve_score, od_ident):
             if np.isnan(score):  

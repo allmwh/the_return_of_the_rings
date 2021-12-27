@@ -15,7 +15,6 @@ class FastaExtreFilter:
     """
     def __inti__(self):
         pass
-
     def fasta_extre_filter(self, input_fasta_path, output_fasta_path, gap_filter_num=20, max_filter_seq=3):
         """
         pepeline接起來：拿到seq array >> 迴圈(by_seq_num過濾 >> by_gap_num過濾) >> 刪掉有問題的

@@ -128,8 +128,8 @@ def get_subset(human_df, subset):
         subset_list_path = Path("./rawdata/ncrbp_uniprotid_list.txt")
     elif subset == "rrbp":
         subset_list_path = Path("./rawdata/rrbp_uniprotid_list.txt")
-    elif subset == "irrbp":
-        subset_list_path = Path("./rawdata/irrbp_uniprotid_list.txt")
+    elif subset == "ribosomerbp":
+        subset_list_path = Path("./rawdata/ribosomerbp_uniprotid_list.txt")
     elif subset == "snorbp":
         subset_list_path = Path("./rawdata/snorbp_uniprotid_list.txt")
     elif subset == "human":

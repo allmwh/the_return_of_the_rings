@@ -135,7 +135,7 @@ def get_subset(human_df, subset):
     elif subset == "human":
         return human_df
     else:
-        raise ValueError("subset must be 'rbp', 'mrbp', 'trbp', 'snrbp', 'snorbp', 'ncrbp', 'rrbp' or 'irrbp' ")
+        raise ValueError("subset must be 'rbp', 'mrbp', 'trbp', 'snrbp', 'snorbp', 'ncrbp', 'rrbp' or 'ribosomerbp'")
 
     with open(subset_list_path, "r") as tf:
         subset_list = tf.read().split("\n")

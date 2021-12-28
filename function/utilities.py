@@ -106,8 +106,7 @@ def find_human_sequence(path):
                     "sequence": sequence}
 
     # ERROR handle for no human sequence
-    print("{}, FASTA PATH {} DOES NOT HAVE HUMAN SEQUENCE".format(uniprot_id, str(path)))
-    raise Exception("error")
+    raise Exception("{}, fasta path {} does not have human sequence".format(uniprot_id, str(path)))
 
 
 def get_subset(human_df, subset):

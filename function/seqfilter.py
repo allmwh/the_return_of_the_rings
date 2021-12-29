@@ -11,13 +11,13 @@ class FastaExtreFilter:
     """
     filter some special paralogs, 
     i.e. some sequences in paralogs has long gap(>20) in alied fasta file, 
-    while other sequences do not have gap, we think this is "special", and filter it
+    while other sequences do not have gap, this is "special", and filter it
     """
     def __inti__(self):
         pass
     def fasta_extre_filter(self, input_fasta_path, output_fasta_path, gap_filter_num=20, max_filter_seq=3):
         """
-        pepeline接起來：拿到seq array >> 迴圈(by_seq_num過濾 >> by_gap_num過濾) >> 刪掉有問題的
+        pepeline： get seq array >> loop(filter by_seq_num >> filter by_gap_num) >> delete extre seq by index
         
         input fasta file, filter special sequence, and output to new fasta
 
@@ -27,19 +27,17 @@ class FastaExtreFilter:
         max_filter_seq: int, sequences number that have same gap simultaneously are special sequence
         """
 
-        #拿到array
+        #get seq array
         seq_array = self.__seq_2_array(input_fasta_path)
-        #迴圈拿index
+        #get extre seqeunce index
         extre_index = self.__get_extre_index_max_cond(seq_array, gap_filter_num, max_filter_seq)
-        #刪掉有問題的
+        #remove sequence by index
         self.__fasta_remove_extre_by_index(input_fasta_path, output_fasta_path, extre_index)
 
-        #ERROR 篩到的序列都沒了
+        #error handle for fasta file is empty
         uniprot_id = get_fasta_seq_info(input_fasta_path)['human_uniprot_id']
         if fasta_to_seqlist(output_fasta_path) == list():
             raise Exception("{} filtered fasta is empty".format(uniprot_id))
-
-        
 
         return {'before':seq_array.shape[0],
                 'after':seq_array.shape[0] - len(extre_index),
@@ -150,27 +148,25 @@ class SeqFilter:
     """
     filter order/disorder sequence not longer than desired length
 
-    od_ident 表示：
+    od_ident：
         1 disorder
         0 order
 
-        x disorder被篩掉
-        z order被篩掉
+        x filtered disorder 
+        z filtered order
     """
     def __init__(self):
         pass
 
     def length_filter_by_od_ident(self, od_ident, disorder_filter_length, order_filter_length):
         '''
-        篩掉不夠長的order/disorder 長度
+        filter order/disorder shorter than order_filter_length/disorder_filter_length
 
-        od_ident: pondr認出來的order/disoder
-        disorder_filter_length: disorder小於多少要篩掉
-        order_filter_length: order小於多少要篩掉
+        od_ident: order=0 disorder=1 
+        disorder_filter_length: disorder shorter than is been removed  
+        order_filter_length: order shorter than is been removed
 
         return od_ident 
-                    x代表disorder被篩掉的
-                    z代表order被篩掉的
         '''
 
         #filter_length
@@ -181,7 +177,7 @@ class SeqFilter:
                 end = i.end()
                 if end - start <= disorder_filter_length:
                     od_ident = od_ident[:start] + "x" * (end - start) + od_ident[end:]
-
+        
         order_check = re.finditer("0+", od_ident)
         for i in order_check:
             if i:
@@ -193,6 +189,7 @@ class SeqFilter:
 
     def get_seq_from_od_ident(self, od_ident,sequence,od):
         '''
+        make 
         用od_ident做一條新的序列，通常用在過濾長度後
         
         od_ident: 指向是order, disorder的東西  0:order, 1:disorder, x:disorder被過濾掉的 z:order被過濾調的

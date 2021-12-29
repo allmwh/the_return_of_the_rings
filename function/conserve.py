@@ -13,8 +13,8 @@ from function.utilities import get_fasta_seq_info
 from selenium import webdriver
 from selenium.webdriver.common.by import By 
 from selenium.webdriver.support.ui import Select
-from selenium.webdriver.support import expected_conditions as EC
 from webdriver_manager.chrome import ChromeDriverManager
+from selenium.webdriver.support import expected_conditions as EC
 
 
 class Rate4Site():
@@ -98,12 +98,12 @@ class ConserveByWeb():
 
     def get_conserve_score(self, fasta_path, method, windows_size=0, sequence_weight=False):
         '''
+        get conserve score by fasta file
+
         windows_size: int
         sequence_weighting: bool
         method: ['jsd', 'shannon_entropy', 'property_entropy', 'relative_entropy', 'sum_of_pairs']
-        fasta_path = alied過的fasta檔名
-        
-        傳入單一個檔案，輸出分數list
+        fasta_path = alied fasta file
         '''
         base_url = 'https://compbio.cs.princeton.edu/conservation/score.html'
         self.driver.get(base_url)
@@ -175,15 +175,13 @@ class ConserveStandalone():
 
     def get_conserve_score(self, fasta_path, method, windows_size=0, sequence_weight=False):
         '''
+        get conserve score by fasta file
+
         windows_size: int
         sequence_weighting: bool
         method: ['jsd', 'shannon_entropy']
-        fasta_path = alied過的fasta檔名
-        
-        傳入單一個檔案，輸出分數list
+        fasta_path = alied fasta file
         '''
-        pass
-
         seqs_strip = self.__get_seqs_strip(fasta_path)
         gap_penalty=1
 
@@ -396,7 +394,7 @@ class ConservePeraa():
         '''
         fasta_path: alied 好的fasta
         conserve_score: conserve score
-        od_ident: 切掉非human的od_ident
+        od_ident: order=0 disorder=1 
         '''
         # human sequence
         human_sequence = find_human_sequence(fasta_path)["remove_gap_sequence"]
@@ -448,9 +446,9 @@ class ConservePeraa():
         uniprot_id = get_fasta_seq_info(fasta_path)['human_uniprot_id']
         if not (len(human_sequence) == len(conserve_score) == len(od_ident)):
             raise Exception('''{} human_sequence, conserve_score, od_ident length check, these three length must be same,
-            possible not same reason: 
+            possible reason: 
             1.OMA database with same uniprot_id, while sequence is different
-            2.human_sequence does not remove "-", because od_ident and conserve_score is calculated by remove gap
+            2.human_sequence does not remove "-", while od_ident and conserve_score are calculated by remove gap
             '''.format(uniprot_id))
 
         for aa, score, od in zip(human_sequence, conserve_score, od_ident):
@@ -471,13 +469,11 @@ class ConservePeraa():
 
         # mean
         for key, value in disorder_score_dict.items():
-            if disorder_content_dict[key] == 0:
-                # disorder_score_dict[key] = 0
+            if disorder_content_dict[key] == 0: #no aa, return np.nan
                 disorder_score_dict[key] = np.nan
             else:
                 disorder_score_dict[key] = round((disorder_score_dict[key] / disorder_content_dict[key]), 5)
-            if order_content_dict[key] == 0:
-                # order_score_dict[key] = 0
+            if order_content_dict[key] == 0: #no aa, return np.nan
                 order_score_dict[key] = np.nan
             else:
                 order_score_dict[key] = round((order_score_dict[key] / order_content_dict[key]), 5)

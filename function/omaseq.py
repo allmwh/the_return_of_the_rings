@@ -7,7 +7,6 @@ from pathlib import Path
 from tqdm.notebook import trange
 from Bio.SeqRecord import SeqRecord
 
-from function.utilities import get_taxid_dict
 from function.utilities import fasta_to_seqlist
 from function.utilities import find_human_sequence
 
@@ -18,18 +17,19 @@ def uniprot_id_consistance_check(fasta_path,uniprot_id):
         if uniprot_id != uniprot_id_oma_fassta:
             fasta_path.unlink()
             raise Exception("{} in uniprot is not consist with OMA's record, delete this record".format(uniprot_id))
+
 class FetchOmaSeqBatch():
     '''
-    抓fasta速度比較快的方法:
-    從  https://omabrowser.org/oma/omagroup/Q13148/fasta/ 拿到他們格式的fasta，
-    再從 https://omabrowser.org/api/group/Q13148/ 拿到fasta資料，然後改我自己的格式
+    faster way to get homologous from OMA:
+    1. get OMA raw fasta from https://omabrowser.org/oma/omagroup/Q13148/fasta/ 
+    2. change sequence name to former format, infos are from https://omabrowser.org/api/group/Q13148/ 
     '''
     def __init__(self):
         pass
 
     def get_oma_seq(self, uniprot_id, path):
         '''
-        pipeline: 從oma抓fasta, 拿到fasta詳細資料, 改fasta資訊跟原本我的一樣
+        pipeline: get fasta from OMA, and change sequence info to former format
         '''
 
         oma_path = Path(path)
@@ -49,7 +49,7 @@ class FetchOmaSeqBatch():
 
     def __get_oma_fasta(self, uniprot_id, fasta_path):
         '''
-        從oma拿到整包的fasta
+        get raw fasta from OMA
         '''
         try:
             url = "https://omabrowser.org/oma/omagroup/{}/fasta/".format(uniprot_id)
@@ -58,11 +58,11 @@ class FetchOmaSeqBatch():
             with open(fasta_path, "w") as file:
                 file.write(resp.text)
         except:
-            raise Exception("{} OMA fetch fasta failed".format(uniprot_id))
+            raise Exception("{} get fasta failed from OMA".format(uniprot_id))
 
     def __get_fasta_info(self, uniprot_id):
         '''
-        拿到所要的fasta資料
+        get sequence infos from OMA
         '''
         try:
             url = "https://omabrowser.org/api/group/{}/".format(uniprot_id)
@@ -73,8 +73,8 @@ class FetchOmaSeqBatch():
             for i in oma_raw['members']:
 
                 species = i["species"]["species"]
-                # species name is too long, remove some strain info
-                species = re.sub("\(.*\)", "", species)
+                
+                species = re.sub("\(.*\)", "", species) #sometimes species name are too long, remove some strain info
 
                 oma_id = i["omaid"]
                 canonical_id = i["canonicalid"]
@@ -93,7 +93,7 @@ class FetchOmaSeqBatch():
 
     def __mod_fasta_info(self, oma_fasta_path, mod_fasta_path, fasta_info_dict):
         '''
-        用拿到的fasta資料去修改成新的fasta
+        change sequence name to former format
         '''
 
         fasta_list = list(SeqIO.parse(str(oma_fasta_path), 'fasta'))
@@ -108,9 +108,10 @@ class FetchOmaSeqBatch():
                             )
             mod_fasta_list.append(record)
         SeqIO.write(mod_fasta_list, mod_fasta_path, "fasta")
+
 class FetchOmaSeq():
     """
-    舊方法，抓的比較慢
+    Deprecated, this is slower than FetchOmaSeqBatch()
     get paralogs by uniprot id from OMA, 
     https://omabrowser.org/oma/home/
     """
@@ -145,8 +146,8 @@ class FetchOmaSeq():
             oma_raw = json.loads(resp.text)
 
             species = oma_raw["species"]["species"]
-            # species name is too log, remove some strain info
-            species = re.sub("\(.*\)", "", species)
+            
+            species = re.sub("\(.*\)", "", species) #sometimes species name are too long, remove some strain info
 
             oma_id = oma_raw["omaid"]
             canonical_id = oma_raw["canonicalid"]
@@ -184,17 +185,13 @@ class FetchOmaSeq():
             record = SeqRecord(
                 Seq(i["sequence"]),
                 id=i["oma_id"],
-                description="| {} | {} | {}".format(
-                    i["species"], i["taxon_id"], i["canonical_id"]
-                ),
-            )
+                description="| {} | {} | {}".format(i["species"], i["taxon_id"], i["canonical_id"]))
             fasta_list.append(record)
         SeqIO.write(fasta_list, path, "fasta")
 
-
 class TaxSeqFilter():
     """
-    filter paralogs by taxonomy id, and save as fasta file
+    filter homologous by taxonomy id
     """
     def __init__(self, taxonomy):
         """
@@ -224,16 +221,3 @@ class TaxSeqFilter():
 
         with open(grouped_fasta_path, "w") as output_handle:
             SeqIO.write(filtered_list, output_handle, "fasta")
-
-    def taxfilter_pipeline(self, oma_path, grouped_tax_path):
-        tax_id = Path(str(self.taxonomy))
-        species = get_taxid_dict()[self.taxonomy]
-        grouped_tax_path.mkdir(exist_ok=True, parents=True)
-
-        fasta_pathlist = list(Path(oma_path).rglob("*.fasta"))
-        t = trange(len(fasta_pathlist), desc="", leave=True, position=2)
-
-        for i in t:
-            uniprot_id_path = fasta_pathlist[i]
-            t.set_description("{} ({}): {}".format(species, tax_id, uniprot_id_path.parts[-1].split(".")[0]))
-            self.taxfilter(uniprot_id_path, grouped_tax_path / Path(uniprot_id_path.parts[-1]))

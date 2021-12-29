@@ -2,25 +2,23 @@ import pandas as pd
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import ui as UI
+from webdriver_manager.chrome import ChromeDriverManager
 from selenium.webdriver.support import expected_conditions as EC
 
 
-class CutPONDR:
-    """
-    automatically sends sequences to pondr.com, and get order/disrder info
-    """
-
-    def __init__(self, driver_path, show_progress_window=False):
+class CutPONDR():
+    def __init__(self, show_progress_window=False):
         """
-        driver_path: chrome driver path, download: https://chromedriver.chromium.org/
-        show_progress_window: show chrome window during sequence identification by PONDR
+        automatically sends sequences to pondr.com, and get order/disrder info
+
+        show_progress_window: show chrome during sequence identification by PONDR
         """
         options = webdriver.ChromeOptions()
         if not show_progress_window:
             options.add_argument("--headless")
             options.add_argument("--no-sandbox")
             options.add_argument("--disable-dev-shm-usage")
-        self.driver = webdriver.Chrome(driver_path, chrome_options=options)
+        self.driver = webdriver.Chrome(ChromeDriverManager().install(), chrome_options=options)
 
     def close(self):
         return self.driver.close()
@@ -161,12 +159,11 @@ class CutPONDR:
 
     def get_od_ident(self):
         """
-        same as get_sequence_mask, instead different symbol of order/disorder
+        same as get_sequence_mask, instead different symbols of order/disorder
         "0": order
         "1": disorder
 
         return: str
         """
         od_ident = self.__sequence_mask.replace("*", "0").replace(".", "1")
-
         return od_ident

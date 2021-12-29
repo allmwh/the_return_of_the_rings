@@ -19,7 +19,7 @@ from webdriver_manager.chrome import ChromeDriverManager
 
 class Rate4Site():
     
-    def __init__(self, work_path = '/home/wenlin/tmp'):
+    def __init__(self, work_path = './output/r4s_work_path'):
         '''
         Calculate conserve score by Rate4Site
         Please install Rate4Site: https://launchpad.net/ubuntu/xenial/+package/rate4site
@@ -29,13 +29,15 @@ class Rate4Site():
         '''
         
         work_path = Path(work_path)
+        work_path = work_path.absolute()
         self.work_path = work_path
-        
+
         self.res_path = work_path / "tmp.res"   
     
-    def get_conserve_score(self, fasta_path):
-        
+    def get_conserve_score(self, fasta_path, method=0, windows_size=0, sequence_weight=0):
+
         #run rate4site
+        fasta_path = fasta_path.absolute()
         self.__run_rate4site(fasta_path, self.res_path)
         
         #parse_res_file

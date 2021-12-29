@@ -81,3 +81,4 @@ wcwidth==0.2.5
 webencodings==0.5.1
 widgetsnbextension==3.5.1
 wsproto==1.0.0
+xlsxwriter

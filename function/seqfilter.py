@@ -4,7 +4,7 @@ from Bio import SeqIO
 
 from function.utilities import fasta_to_seqlist
 from function.utilities import find_human_sequence
-from function.utilities import get_uniprot_id_from_fasta
+from function.utilities import get_fasta_seq_info
 
 
 class FastaExtreFilter:
@@ -35,12 +35,15 @@ class FastaExtreFilter:
         self.__fasta_remove_extre_by_index(input_fasta_path, output_fasta_path, extre_index)
 
         #ERROR 篩到的序列都沒了
-        uniprot_id = get_uniprot_id_from_fasta(input_fasta_path)
+        uniprot_id = get_fasta_seq_info(input_fasta_path)['human_uniprot_id']
         if fasta_to_seqlist(output_fasta_path) == list():
-            print("{} FILTERED FASTA IS EMPTY".format(uniprot_id))
-            raise Exception("error")
+            raise Exception("{} filtered fasta is empty".format(uniprot_id))
 
-        return extre_index
+        
+
+        return {'before':seq_array.shape[0],
+                'after':seq_array.shape[0] - len(extre_index),
+                'removed_sequence_index':extre_index}
 
     def __seq_2_array(self, fasta_path):
         '''

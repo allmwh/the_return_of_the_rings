@@ -8,7 +8,7 @@ from pathlib import Path
 from function.utilities import seq_aa_check
 from function.utilities import fasta_to_seqlist
 from function.utilities import find_human_sequence
-from function.utilities import get_uniprot_id_from_fasta
+from function.utilities import get_fasta_seq_info
 
 from selenium import webdriver
 from selenium.webdriver.common.by import By 
@@ -443,7 +443,7 @@ class ConservePeraa():
 
         
         #length check
-        uniprot_id = get_uniprot_id_from_fasta(fasta_path)
+        uniprot_id = get_fasta_seq_info(fasta_path)['human_uniprot_id']
         if not (len(human_sequence) == len(conserve_score) == len(od_ident)):
             raise Exception('''{} human_sequence, conserve_score, od_ident length check, these three length must be same,
             possible not same reason: 
@@ -470,11 +470,13 @@ class ConservePeraa():
         # mean
         for key, value in disorder_score_dict.items():
             if disorder_content_dict[key] == 0:
-                disorder_score_dict[key] = 0
+                # disorder_score_dict[key] = 0
+                disorder_score_dict[key] = np.nan
             else:
                 disorder_score_dict[key] = round((disorder_score_dict[key] / disorder_content_dict[key]), 5)
             if order_content_dict[key] == 0:
-                order_score_dict[key] = 0
+                # order_score_dict[key] = 0
+                order_score_dict[key] = np.nan
             else:
                 order_score_dict[key] = round((order_score_dict[key] / order_content_dict[key]), 5)
 

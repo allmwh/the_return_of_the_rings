@@ -12,7 +12,7 @@ from function.utilities import fasta_to_seqlist
 from function.utilities import find_human_sequence
 
 
-def __uniprot_id_consistance_check(fasta_path,uniprot_id):
+def uniprot_id_consistance_check(fasta_path,uniprot_id):
     # some uniprot id in OMA paralogs is not consist with uniprot 
         uniprot_id_oma_fassta = find_human_sequence(fasta_path)["uniprot_id"]
         if uniprot_id != uniprot_id_oma_fassta:
@@ -45,7 +45,7 @@ class FetchOmaSeqBatch():
         self.__mod_fasta_info(oma_fasta_path, oma_fasta_path, fasta_info_dict)
 
         # uniprot id consistance check
-        __uniprot_id_consistance_check(oma_fasta_path, uniprot_id)
+        uniprot_id_consistance_check(oma_fasta_path, uniprot_id)
 
     def __get_oma_fasta(self, uniprot_id, fasta_path):
         '''
@@ -136,7 +136,7 @@ class FetchOmaSeq():
         #writing to fasta
         self.__get_fasta(orthologs_list, fasta_path)
 
-        __uniprot_id_consistance_check(fasta_path, uniprot_id)
+        uniprot_id_consistance_check(fasta_path, uniprot_id)
 
     def __get_protein_info_from_entry(self, ortholog_entry):
 

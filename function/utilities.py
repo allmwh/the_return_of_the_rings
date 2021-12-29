@@ -7,7 +7,7 @@ from pathlib import Path
 
 def seq_aa_check(sequence):
     '''
-    check aa 20 usual
+    check 20 amino acid abbreviations are usual used. If not, replace with most similar letter 
     https://www.ncbi.nlm.nih.gov/Class/MLACourse/Modules/MolBioReview/iupac_aa_abbreviations.html
     
     sequence: str, seqeunce
@@ -24,25 +24,9 @@ def seq_aa_check(sequence):
             
     return new_seq
 
-def get_only_human_score(score, fasta_path):
-    """
-    get entropy score only when alignment positions on human sequence is not gap
-
-    score: list, entropy score calculated by conserve score func
-    fasta_path: str, fasta file 
-    
-    return: list, score as same length with human sequence
-    """
-    nogap_score = []
-    nogap = np.array(list(find_human_sequence(fasta_path)["sequence"])) != "-"
-    nogap_index = np.where(nogap)[0].tolist()
-    for index in nogap_index:
-        nogap_score.append(score[index])
-    return nogap_score
-
 def get_protein_name(uniprot_id, human_df):
     """
-    get protein name by uniprot_id
+    get protein name by uniprot_id from human_df
     """
     protein_name = human_df[human_df["uniprot_id"] == uniprot_id]["protein_name"].values[0]
     gene_name = human_df[human_df["uniprot_id"] == uniprot_id]["gene_name"].values[0]
@@ -86,6 +70,30 @@ def get_uniprot_id_from_fasta(path):
 def fasta_to_seqlist(path):
     return list(SeqIO.parse(str(path), "fasta"))
 
+def get_fasta_seq_info(path):
+    path = Path(path)
+    path = path.absolute()
+    fasta_list = list(SeqIO.parse(path, "fasta"))
+    seq_info_list = []
+    for i in fasta_list:
+        sequence_info = i.description
+        sequence_info = sequence_info.split('|')
+        
+        oma_protein_id = sequence_info[0].strip()
+        species = sequence_info[1].strip()
+        taxon_id = sequence_info[2].strip()
+        oma_cross_reference = sequence_info[3].strip()
+        
+        seq_info_list.append({"oma_protein_id":oma_protein_id,
+                              "species":species,
+                              "taxon_id":taxon_id,
+                              "oma_cross_reference":oma_cross_reference})
+        
+    human_uniprot_id = path.parts[-1].split(".")[0]
+        
+    return {"human_uniprot_id":human_uniprot_id,
+            "homologous_info":seq_info_list}
+
 
 def find_human_sequence(path):
     """
@@ -94,7 +102,7 @@ def find_human_sequence(path):
 
     path = Path(path)
     all_sequence_list = fasta_to_seqlist(path)
-    uniprot_id = get_uniprot_id_from_fasta(path)
+    uniprot_id = get_fasta_seq_info(path)['human_uniprot_id']
 
     for i in all_sequence_list:
         tax_id = i.description.split("|")[2]

@@ -5,18 +5,19 @@ from Bio.Align.Applications import ClustalOmegaCommandline
 
 class Alignment:
     """
-    alignment func by Biopython ClustalOmegaCommandline
-    need to install ClustalOmega: http://www.clustal.org/omega/
+    alignment by Biopython ClustalOmegaCommandline
+    plese install ClustalOmega: http://www.clustal.org/omega/
+    Ubuntu/Debian based linux distro: sudo apt install clustalo
     """
     def __init__(self):
         pass
 
     def alignment_single(self, input_fasta, output_fasta):
         """
-        single fasta file alignment
+        fasta alignment
 
-        input_fasta: str, fasta file path for alignment
-        output_fasta: str, fasta file path for alied fasta
+        input_fasta: str, fasta file for alignment
+        output_fasta: str, fasta file for alied fasta
 
         return: None
         """
@@ -24,21 +25,19 @@ class Alignment:
         output_fasta = Path(output_fasta)
 
         try:
-            clustalomega_cline = ClustalOmegaCommandline(
-                infile=input_fasta,
-                outfile=output_fasta,
-                verbose=True,
-                auto=True,
-                force=True,
-            )
+            clustalomega_cline = ClustalOmegaCommandline(infile=input_fasta, outfile=output_fasta, verbose=True, auto=True, force=True)
             clustalomega_cline()
         except:
-            print("ALIGNMENT {} failed".format(str(input_fasta)))
-            raise Exception("error")
+            raise Exception("{} alignment failed".format(str(input_fasta)))
 
     def alignment_path(self, input_path, output_path):
         """
-        alignment all file under input_oath, and output to output_path
+        align all file under input_path, and save alied fasta to output_path
+
+        input_path: str, path saving many fasta to be alied 
+        output_path: str, path for alied fsta output
+
+        return: None
         """
         input_path = Path(input_path)
         input_path.mkdir(parents=True, exist_ok=True)

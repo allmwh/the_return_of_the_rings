@@ -18,24 +18,26 @@ from selenium.webdriver.support import expected_conditions as EC
 
 
 class Rate4Site():
-    
+    '''
+    Calculate conserve score by Rate4Site
+    Please install Rate4Site: https://www.tau.ac.il/~itaymay/cp/rate4site.html
+    Ubuntu/Debian based linux distro: sudo apt install rate4site
+    '''
     def __init__(self, work_path = './output/r4s_work_path'):
         '''
-        Calculate conserve score by Rate4Site
-        Please install Rate4Site: https://launchpad.net/ubuntu/xenial/+package/rate4site
-        Ubuntu/Debian based distro: sudo apt install rate4site
-
-        work_path: str, path to save Rate4Site output file
+        work_path: str, path to save Rate4Site temporary output, 
+                        files in this path will be removed after each run 
         '''
-        
         work_path = Path(work_path)
         work_path = work_path.absolute()
+        
         self.work_path = work_path
-
         self.res_path = work_path / "tmp.res"   
     
     def get_conserve_score(self, fasta_path, method=0, windows_size=0, sequence_weight=0):
-
+        '''
+        run rate4site pipeline: run rate4site >> parse output >> remove rate4site's output
+        '''
         #run rate4site
         fasta_path = fasta_path.absolute()
         self.__run_rate4site(fasta_path, self.res_path)
@@ -50,13 +52,12 @@ class Rate4Site():
         return conserve_score
         
     def __run_rate4site(self, fasta_path,res_path):
-
+        
         fasta_path = str(fasta_path)
         res_path = str(res_path)
 
         #get ref seq name
         seqence_name = find_human_sequence(fasta_path)['sequence_name']
-        
         
         #-s input fasta
         #-o output score 
@@ -66,9 +67,9 @@ class Rate4Site():
                                         cwd = self.work_path,
                                         stdout = subprocess.PIPE, 
                                         stderr = subprocess.PIPE)
-            stdout, stderr = process.communicate()
+            _, _ = process.communicate()
         except:
-            raise FileNotFoundError("Rate4Site may not be installed, please install Rate4Site") 
+            raise Exception("Rate4Site may not be installed, please install Rate4Site") 
 
     def __parse_res_file(self, res_path):
         df = pd.read_csv(res_path,skiprows=[0,1,2,3,4,5,6,7,8,9,10,11,12], 
@@ -80,16 +81,14 @@ class Rate4Site():
 
 
 class ConserveByWeb():
+    '''
+    Please consider use standalone version ConserveStandalone() to have better speed instead of web crawler 
 
+    Claculate conserve score by web
+    https://compbio.cs.princeton.edu/conservation/score.html
+    '''
     def __init__(self):
-        '''
-        Please consider use standalone version ConserveStandalone() to have better speed instead of web crawler 
-
-        Claculate conserve score by web
-        https://compbio.cs.princeton.edu/conservation/score.html
-        '''
         options = webdriver.ChromeOptions()
-        
         options.add_argument('--headless')
         options.add_argument('--no-sandbox')
         options.add_argument("--disable-extensions")
@@ -102,7 +101,7 @@ class ConserveByWeb():
 
         windows_size: int
         sequence_weighting: bool
-        method: ['jsd', 'shannon_entropy', 'property_entropy', 'relative_entropy', 'sum_of_pairs']
+        method: 'jsd', 'shannon_entropy', 'property_entropy', 'relative_entropy' or 'sum_of_pairs'
         fasta_path = alied fasta file
         '''
         base_url = 'https://compbio.cs.princeton.edu/conservation/score.html'
@@ -157,14 +156,15 @@ class ConserveByWeb():
 
 
 class ConserveStandalone():
+    '''
+    Claculate conserve score
     
-    def __init__(self):
-        '''
-        Claculate conserve score by standalone code by 
-        Capra JA and Singh M. Predicting functionally important residues from sequence conservation. 
-        Bioinformatics, 23(15):1875-82, 2007. [Bioinformatics]
-        https://compbio.cs.princeton.edu/conservation/score.html
-        '''
+    Sourcecode: 
+    Capra JA and Singh M. Predicting functionally important residues from sequence conservation. 
+    Bioinformatics, 23(15):1875-82, 2007. [Bioinformatics]
+    https://compbio.cs.princeton.edu/conservation/score.html
+    '''
+    def __init__(self): 
         self.__PSEUDOCOUNT = 0.0000001
         self.__amino_acids = ['A', 'R', 'N', 'D', 'C', 'Q', 'E', 'G', 'H', 'I', 'L', 'K', 'M', 'F', 'P', 'S', 'T', 'W', 'Y', 'V', '-']
         self.__blosum_background_distr = [0.078, 0.051, 0.041, 0.052, 0.024, 0.034, 0.059, 0.083, 0.025, 0.062, 0.092, 0.056, 0.024, 0.044, 0.043, 0.059, 0.055, 0.014, 0.034, 0.072]
@@ -291,7 +291,6 @@ class ConserveStandalone():
         return 1 - (gap_sum / sum(seq_weights))
         
     def __shannon_entropy(self, col, seq_weights, gap_penalty=1):
-
         """Calculates the Shannon entropy of the column col. sim_matrix  and 
         bg_distr are ignored. If gap_penalty == 1, then gaps are penalized. The 
         entropy will be between zero and one because of its base. See p.13 of 
@@ -383,18 +382,16 @@ class ConserveStandalone():
 
 
 class ConservePeraa():
-    """
-    calculate conservation lever per amino acid
-    """
+    '''
+    calculate conservation score with per amino acid mean 
+    '''
 
     def __init__(self):
         pass
 
     def get_aa_info(self, fasta_path, conserve_score, od_ident):
         '''
-        fasta_path: alied 好的fasta
-        conserve_score: conserve score
-        od_ident: order=0 disorder=1 
+        calculate conservation score with per amino acid mean 
         '''
         # human sequence
         human_sequence = find_human_sequence(fasta_path)["remove_gap_sequence"]
@@ -441,14 +438,13 @@ class ConservePeraa():
             "W": 0, "Y": 0, "-": 0,
             }
 
-        
         #length check
         uniprot_id = get_fasta_seq_info(fasta_path)['human_uniprot_id']
         if not (len(human_sequence) == len(conserve_score) == len(od_ident)):
             raise Exception('''{} human_sequence, conserve_score, od_ident length check, these three length must be same,
             possible reason: 
-            1.OMA database with same uniprot_id, while sequence is different
-            2.human_sequence does not remove "-", while od_ident and conserve_score are calculated by remove gap
+            1. OMA database with same uniprot_id, while sequence is different
+            2. human_sequence does not remove "-", while od_ident and conserve_score are calculated by remove gap
             '''.format(uniprot_id))
 
         for aa, score, od in zip(human_sequence, conserve_score, od_ident):

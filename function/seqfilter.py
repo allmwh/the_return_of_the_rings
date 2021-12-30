@@ -9,12 +9,13 @@ from function.utilities import get_fasta_seq_info
 
 class FastaExtreFilter:
     """
-    filter some special paralogs, 
-    i.e. some sequences in paralogs has long gap(>20) in alied fasta file, 
-    while other sequences do not have gap, this is "special", and filter it
+    filter some homologous, 
+    i.e. some sequences in homologous have very long gap in alied fasta file, 
+    while other sequences do not have gap, this is "special", and remove it
     """
     def __inti__(self):
         pass
+
     def fasta_extre_filter(self, input_fasta_path, output_fasta_path, gap_filter_num=20, max_filter_seq=3):
         """
         pepeline： get seq array >> loop(filter by_seq_num >> filter by_gap_num) >> delete extre seq by index
@@ -26,7 +27,6 @@ class FastaExtreFilter:
         gap_filter_num: int, sequence that gap larger than gap_filter_num is possible special sequence
         max_filter_seq: int, sequences number that have same gap simultaneously are special sequence
         """
-
         #get seq array
         seq_array = self.__seq_2_array(input_fasta_path)
         #get extre seqeunce index
@@ -45,11 +45,11 @@ class FastaExtreFilter:
 
     def __seq_2_array(self, fasta_path):
         '''
-        把序列轉換成array，1是gap，0是序列
+        sequence to numpy array with 1(gap) and 0(residue)
 
-        fasta_path: str, fasta路徑
+        fasta_path: str, fasta file path
 
-        return: 序列裝在array裡
+        return: sequence array with 1 and 0
         '''
         seq_info_list = fasta_to_seqlist(fasta_path)
         seq_list = []
@@ -61,8 +61,10 @@ class FastaExtreFilter:
             seq = list(seq)
             seq_list.append(seq)
         seq_array = np.array(seq_list, dtype=np.uint8)
+
         return seq_array
 
+    #### annotation translation TO-DO :) #####
     def __get_extre_index_max_cond(self, seq_array, filter_gap_num, max_filter_seq_num):
         '''
         loop max_filter_seq_num，依序進行get_pot_seq_by_seq_num和get_pot_seq_by_gap_num
@@ -80,6 +82,7 @@ class FastaExtreFilter:
             extre_list = self.__get_pot_seq_by_gap_num(extre_array, filter_gap_num)
             extre_index = extre_index | extre_list
         extre_index = sorted(extre_index, reverse=True)
+
         return extre_index
 
     def __get_pot_seq_by_seq_num(self, seq_array, filter_seq_num):
@@ -110,6 +113,7 @@ class FastaExtreFilter:
                     if len(seq_nums) == filter_seq_num:
                         for seq_num in seq_nums:
                             extre_array[seq_num][seq_index] = 1
+
         return extre_array
 
     def __get_pot_seq_by_gap_num(self, extre_array, filter_gap_num):
@@ -128,6 +132,7 @@ class FastaExtreFilter:
             )
             if gap_num_check:
                 problem_list.append(row)
+
         return set(problem_list)
 
     def __fasta_remove_extre_by_index(self, input_fasta_path, output_fasta_path, extre_index):
@@ -146,7 +151,7 @@ class FastaExtreFilter:
 
 class SeqFilter:
     """
-    filter order/disorder sequence not longer than desired length
+    filter order/disorder sequence is shorter than desired length
 
     od_ident：
         1 disorder
@@ -160,15 +165,14 @@ class SeqFilter:
 
     def length_filter_by_od_ident(self, od_ident, disorder_filter_length, order_filter_length):
         '''
-        filter order/disorder shorter than order_filter_length/disorder_filter_length
+        filter order/disorder seqeunce is shorter than order_filter_length/disorder_filter_length
 
-        od_ident: order=0 disorder=1 
-        disorder_filter_length: disorder shorter than is been removed  
-        order_filter_length: order shorter than is been removed
+        od_ident: str
+        disorder_filter_length: int, continuous disorder sequence which is shorter than disorder_filter_length is replaced with "x" 
+        order_filter_length: int, continuous order sequence which is shorter disorder_filter_length is replaced with "z"
 
-        return od_ident 
+        return od_ident
         '''
-
         #filter_length
         disorder_check = re.finditer("1+", od_ident)
         for i in disorder_check:
@@ -185,16 +189,16 @@ class SeqFilter:
                 end = i.end()
                 if end - start <= order_filter_length:
                     od_ident = od_ident[:start] + "z" * (end - start) + od_ident[end:]
+
         return od_ident
 
     def get_seq_from_od_ident(self, od_ident,sequence,od):
         '''
-        make 
-        用od_ident做一條新的序列，通常用在過濾長度後
+        make new sequence from length filtered od_ident
         
-        od_ident: 指向是order, disorder的東西  0:order, 1:disorder, x:disorder被過濾掉的 z:order被過濾調的
-        sequence: order/disorder 序列 有*跟aa
-        od: ['order', 'disorder'] 這序列是 order 還是 disorder 
+        od_ident: str
+        sequence: str, protein seqeunce 
+        od: str, ['order', 'disorder'] make order or disorder sequence 
         '''
         new_seq = ''
         for index, element in enumerate(od_ident):
@@ -205,7 +209,6 @@ class SeqFilter:
                     new_seq = new_seq + 'z'
                 elif element == '1' or element == 'x':
                     new_seq = new_seq + '*'
-
             
             elif od == 'disorder':# make disorder seq
                 if element == '1':
@@ -218,7 +221,13 @@ class SeqFilter:
         return new_seq
 
     def get_od_index(self, od_ident):
-        #get order_disorder index
+        '''
+        get order/disorder index
+
+        od_ident: str
+
+        return order/disorder index   
+        '''
         order_region = []
         disorder_region = []
 
@@ -237,38 +246,37 @@ class SeqFilter:
                 end = i.end()
 
                 order_region.append({"start": start, "end": end})
+
         return {"order_region": order_region, 
                 "disorder_region": disorder_region}
 
     def od_add_alignment(self, path, od_ident):
         '''
-        因為od_ident跟alignemt過的長度會不一樣，所以要用alied_seqeunce做新的od_ident
+        add gap to od_ident to consist with alied sequence length
 
-        path: file, alied好的fasta
-        od_ident: str, 標示為0or1的disorder判斷句
+        path: file, alied fasta 
+        od_ident: str
 
-        return: od_ident,新的o/d判斷，跟alied過的一樣長囉
+        return: od_ident with gap added
                 
-        後面od判斷式
+        od condition to fill gap
             een: ---(0or1)
             nen0: 0---0
             nen1: 1---1
             nee: (1or0)---
             ned: 1---0 or 0---1
             oeo: (o or empty)---(o or empty)
-
-            再中間的可能會遇到1---1---1這樣的，要補兩次才能把左右邊都補起來
         '''
         
-        # 找人的功能割到utilities.find_human_sequence()
+        # get alied human sequence
         alied_sequence = find_human_sequence(path)["sequence"]
         
-        # 做新的od_ident
+        # make new od_ident
         for index, element in enumerate(alied_sequence):
             if element == "-":
                 od_ident = od_ident[:index] + "-" + od_ident[index:]
 
-        #一堆判斷
+        #condition to fill 0(order) or (disorder)
         # een: ---(0or1)
         een_check = re.search("^\-+[0,1,o]", od_ident)
         if een_check:
@@ -324,4 +332,5 @@ class SeqFilter:
                     start = i.start()
                     end = i.end()
                     od_ident = od_ident[:start] + "o" * (end - start) + od_ident[end:]
+        
         return od_ident

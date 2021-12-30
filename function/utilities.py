@@ -7,8 +7,8 @@ from pathlib import Path
 
 def seq_aa_check(sequence):
     '''
-    check 20 amino acid abbreviations are usual used. If not, replace with most similar letter 
-    https://www.ncbi.nlm.nih.gov/Class/MLACourse/Modules/MolBioReview/iupac_aa_abbreviations.html
+    check 20 amino acid abbreviations are usual used. If not, replace with similar letter 
+    see: https://www.ncbi.nlm.nih.gov/Class/MLACourse/Modules/MolBioReview/iupac_aa_abbreviations.html
     
     sequence: str, seqeunce
     '''
@@ -43,34 +43,25 @@ def get_protein_name(uniprot_id, human_df):
     return {"protein_name": protein_name, 
             "gene_name": gene_name}
 
-
 def get_uniprot_rawdata(path):
     """
-    path: str, the uniprot tab file path
+    load protein data download from uniprot, the columns of uniprot must be
+    "Entry, Gene names (primary), Protein names, Sequence, Organism ID" and save as "Tab-separated format (.tab)"
+    uniprot: https://www.uniprot.org/uploadlists/
 
-    Load protein data downloaded from uniprot (https://www.uniprot.org/uploadlists/),
-    the columns of uniprot must be
-    "Entry, Gene names (primary), Protein names, Sequence, Organism ID"
-    and save as "Tab-separated format (.tab)"
+    path: str, the uniprot tab file path
     """
     df = pd.read_csv(path, sep="\t", names=["uniprot_id", "gene_name", "protein_name", "protein_sequence", "taxonomy"])
     df = df.drop(0).reset_index().drop(axis=1, labels="index")
     return df
 
-
-def get_uniprot_id_from_fasta(path):
-    """
-    get uniprot_id from fasta file
-    """
-    path = Path(path)
-    uniprot_id = path.parts[-1].split(".")[0]
-    return uniprot_id
-
-
 def fasta_to_seqlist(path):
     return list(SeqIO.parse(str(path), "fasta"))
 
 def get_fasta_seq_info(path):
+    '''
+    get fasta sequence info, include uniprot_id(fasta file name), all seqeunces tax info in fasta
+    '''
     path = Path(path)
     path = path.absolute()
     fasta_list = list(SeqIO.parse(path, "fasta"))
@@ -88,18 +79,16 @@ def get_fasta_seq_info(path):
                               "species":species,
                               "taxon_id":taxon_id,
                               "oma_cross_reference":oma_cross_reference})
-        
+    
     human_uniprot_id = path.parts[-1].split(".")[0]
         
     return {"human_uniprot_id":human_uniprot_id,
             "homologous_info":seq_info_list}
 
-
 def find_human_sequence(path):
     """
-    find human sequence from paralogs fasta file
+    find human sequence from fasta file
     """
-
     path = Path(path)
     all_sequence_list = fasta_to_seqlist(path)
     uniprot_id = get_fasta_seq_info(path)['human_uniprot_id']
@@ -113,16 +102,17 @@ def find_human_sequence(path):
                     "remove_gap_sequence":sequence.replace("-",""),
                     "sequence": sequence}
 
-    # ERROR handle for no human sequence
+    # error handle for no human sequence
     raise Exception("{}, fasta path {} does not have human sequence".format(uniprot_id, str(path)))
 
 
 def get_subset(human_df, subset):
     """
-    get subset(rbp, mrbp) from identified human_df,
+    get subset from identified human_df, subset uniprot_id lists are in ./rawdata/, 
+    definition of all subsets are from census study(https://doi.org/10.1038/nrg3813)
 
-    human_df: pd.DataFrame,
-    subset: 'rbp' 'mrbp'
+    human_df: pd.Dataframe, protein sequence info downloaded from uniprot, parsed by get_uniprot_rawdata()
+    subset: 'rbp', 'mrbp', 'trbp', 'snrbp', 'ncrbp', 'rrbp', 'ribosomerbp', 'snorbp' and 'human'
     """
     if subset == "rbp":
         subset_list_path = Path("./rawdata/rbp_uniprotid_list.txt")
@@ -147,7 +137,6 @@ def get_subset(human_df, subset):
 
     with open(subset_list_path, "r") as tf:
         subset_list = tf.read().split("\n")
-
     subset_df = human_df[human_df["uniprot_id"].isin(subset_list)].reset_index(drop=True)
 
     return subset_df
@@ -155,6 +144,8 @@ def get_subset(human_df, subset):
 
 def get_taxid_dict():
     """
+    taxid and tax name convert 
+
     https://www.ncbi.nlm.nih.gov/Taxonomy/Browser/wwwtax.cgi?mode=info&id=9606
     """
     return {

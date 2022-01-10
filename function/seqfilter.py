@@ -64,7 +64,7 @@ class FastaExtreFilter:
 
         return seq_array
 
-    #### annotation translation TO-DO :) #####
+    #### translate annotation TO-DO :) #####
     def __get_extre_index_max_cond(self, seq_array, filter_gap_num, max_filter_seq_num):
         '''
         loop max_filter_seq_num，依序進行get_pot_seq_by_seq_num和get_pot_seq_by_gap_num
@@ -276,25 +276,8 @@ class SeqFilter:
             if element == "-":
                 od_ident = od_ident[:index] + "-" + od_ident[index:]
 
-        #condition to fill 0(order) or (disorder)
-        # een: ---(0or1)
-        een_check = re.search("^\-+[0,1,o]", od_ident)
-        if een_check:
-            filed_od = een_check.group()[-1]
-            start = een_check.start()
-            end = een_check.end()
-            od_ident = filed_od * (end - start) + od_ident[end:]
 
-        # nen0: 0---0
-        for _ in range(2):
-            nen0_check = re.finditer("0\-+0", od_ident)
-            for i in nen0_check:
-                if i:
-                    filed_od = i.group()[0]
-                    start = i.start()
-                    end = i.end()
-                    od_ident = (od_ident[:start] + filed_od * (end - start) + od_ident[end:])
-
+        # both sides are same in center
         # nen1: 1---1
         for _ in range(2):
             nen1_check = re.finditer("1\-+1", od_ident)
@@ -305,32 +288,116 @@ class SeqFilter:
                     end = i.end()
                     od_ident = (od_ident[:start] + filed_od * (end - start) + od_ident[end:])
 
-        # nee: (1or0)---
-        nee_check = re.search("[0,1,o]\-+$", od_ident)
+        # nen0: 0---0
+        for _ in range(2):
+            nen0_check = re.finditer("0\-+0", od_ident)
+            for i in nen0_check:
+                if i:
+                    filed_od = i.group()[0]
+                    start = i.start()
+                    end = i.end()
+                    od_ident = (od_ident[:start] + filed_od * (end - start) + od_ident[end:])
+                    
+        # nenx: x---x
+        for _ in range(2):
+            nenx_check = re.finditer("x\-+x", od_ident)
+            for i in nenx_check:
+                if i:
+                    filed_od = i.group()[0]
+                    start = i.start()
+                    end = i.end()
+                    od_ident = (od_ident[:start] + filed_od * (end - start) + od_ident[end:])
+                    
+        # nenz: z---z
+        for _ in range(2):
+            nenz_check = re.finditer("z\-+z", od_ident)
+            for i in nenz_check:
+                if i:
+                    filed_od = i.group()[0]
+                    start = i.start()
+                    end = i.end()
+                    od_ident = (od_ident[:start] + filed_od * (end - start) + od_ident[end:])
+
+
+        # start and and to fill 0(order) ,1(disorder), x(disorder filtered) or z(order filtered)
+        # een: ---(0, 1, x, z)
+        een_check = re.search("^\-+[0,1,x,z]", od_ident)
+        if een_check:
+            filed_od = een_check.group()[-1]
+            start = een_check.start()
+            end = een_check.end()
+            od_ident = filed_od * (end - start) + od_ident[end:]
+            
+        #nee: (0, 1, x, z)---
+        nee_check = re.search("[0,1,x,z]\-+$", od_ident)
         if nee_check:
             filed_od = nee_check.group()[0]
             start = nee_check.start()
             end = nee_check.end()
             od_ident = od_ident[:start] + filed_od * (end - start)
 
-        # ned: 1---0 or 0---1
+
+        # complicated condition
+        # nen01: (0, 1)---(0, 1)
         for _ in range(2):
-            ned_check = re.finditer("[0,1]\-+[0,1]", od_ident)
+            nen01_check = re.finditer("[0,1]\-+[0,1]", od_ident)
             od_place = "0" 
-            for i in ned_check:
+            for i in nen01_check:
                 if i:
                     filed_od = i.group()[0]
                     start = i.start()
                     end = i.end()
                     od_ident = (od_ident[:start] + od_place * (end - start) + od_ident[end:])
-
-        # oeo: (o or empty)---(o or empty), fill "o"
+                    
+        # nenxz: (x, z)---(x, z)
         for _ in range(2):
-            oeo_check = re.finditer("o?\-+o?", od_ident)
-            for i in oeo_check:
+            nenxz_check = re.finditer("[x,z]\-+[x,z]", od_ident)
+            od_place = "z" 
+            for i in nenxz_check:
                 if i:
+                    filed_od = i.group()[0]
                     start = i.start()
                     end = i.end()
-                    od_ident = od_ident[:start] + "o" * (end - start) + od_ident[end:]
+                    od_ident = (od_ident[:start] + od_place * (end - start) + od_ident[end:])
+                    
+        # nen1z: (1, z) --- (z, 1)
+        for _ in range(2):
+            nen1z_check = re.finditer("1\-+z", od_ident)
+            od_place = "z" 
+            for i in nen1z_check:
+                if i:
+                    filed_od = i.group()[0]
+                    start = i.start()
+                    end = i.end()
+                    od_ident = (od_ident[:start] + od_place * (end - start) + od_ident[end:])
+        for _ in range(2):
+            nen1z_check = re.finditer("z\-+1", od_ident)
+            od_place = "z" 
+            for i in nen1z_check:
+                if i:
+                    filed_od = i.group()[0]
+                    start = i.start()
+                    end = i.end()
+                    od_ident = (od_ident[:start] + od_place * (end - start) + od_ident[end:])
+                
+        # nen0x: (0, x) --- (x, 0)
+        for _ in range(2):
+            nen0x_check = re.finditer("0\-+x", od_ident)
+            od_place = "x" 
+            for i in nen0x_check:
+                if i:
+                    filed_od = i.group()[0]
+                    start = i.start()
+                    end = i.end()
+                    od_ident = (od_ident[:start] + od_place * (end - start) + od_ident[end:])
+        for _ in range(2):
+            nen0x_check = re.finditer("x\-+0", od_ident)
+            od_place = "x" 
+            for i in nen0x_check:
+                if i:
+                    filed_od = i.group()[0]
+                    start = i.start()
+                    end = i.end()
+                    od_ident = (od_ident[:start] + od_place * (end - start) + od_ident[end:])
         
         return od_ident

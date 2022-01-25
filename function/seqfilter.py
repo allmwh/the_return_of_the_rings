@@ -268,14 +268,21 @@ class SeqFilter:
             oeo: (o or empty)---(o or empty)
         '''
         
+        seq_data = find_human_sequence(path)
+
         # get alied human sequence
-        alied_sequence = find_human_sequence(path)["sequence"]
-        
+        alied_sequence = seq_data['sequence']
+
+        # raise for different length between OMA and uniprot
+        uniprot_id = seq_data['uniprot_id']
+        no_gap_sequence_from_oma = seq_data['remove_gap_sequence']
+        if len(od_ident) != len(no_gap_sequence_from_oma):
+            raise Exception("{}, seq length is different between OMA and uniprot".format(uniprot_id))
+
         # make new od_ident
         for index, element in enumerate(alied_sequence):
             if element == "-":
                 od_ident = od_ident[:index] + "-" + od_ident[index:]
-
 
         # both sides are same in center
         # nen1: 1---1

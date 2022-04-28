@@ -1,5 +1,5 @@
 # The return of the rings
-The return of the rings: evolutionary role of aromatic residues in liquid-liquid phase separation
+The return of the rings: Evolutionary convergence of aromatic residues in the intrinsically disordered regions of RNA-binding proteins for liquid–liquid phase separation  
 
 ## Dependencies
 * [python 3.9.6](https://www.python.org/)
@@ -44,6 +44,11 @@ The script does following steps:
 Following scripts instructions to generate data and figures
 ## Citation
 ```
-@article
-TO-DO
+@article{https://doi.org/10.1002/pro.4317,
+author = {Ho, Wen-Lin and Huang, Jie-rong},
+title = {The return of the rings: Evolutionary convergence of aromatic residues in the intrinsically disordered regions of RNA-binding proteins for liquid–liquid phase separation},
+journal = {Protein Science},
+doi = {https://doi.org/10.1002/pro.4317},
+year = {2022}
+}
 ```

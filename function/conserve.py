@@ -159,7 +159,7 @@ class ConserveStandalone():
     '''
     Claculate conserve score
     
-    Sourcecode: 
+    Source code: 
     Capra JA and Singh M. Predicting functionally important residues from sequence conservation. 
     Bioinformatics, 23(15):1875-82, 2007. [Bioinformatics]
     https://compbio.cs.princeton.edu/conservation/score.html
